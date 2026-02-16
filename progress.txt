@@ -1,4 +1,4 @@
-PROGRESS LOG - February 14, 2026
+PROGRESS LOG - February 14, 2026 + February 16, 2026
 
 ================================================================================
 WHAT WE DID TODAY
@@ -100,3 +100,39 @@ NEXT STEPS (RECOMMENDATIONS)
 Fonts not the same.
 on calendar screen th highlighted gold day the gold pill is not centered on day
 there is no settings cog and settings modal
+
+
+================================================================================
+SESSION - February 16, 2026
+================================================================================
+
+WHAT WE DID
+-----------
+
+1. Added full quotes to constants/quotes.ts
+   - All 364 quotes now in the app
+
+2. Fixed lint warning in app/index.tsx
+   - react-hooks/exhaustive-deps: added `router` to useEffect dependency array
+   - Lint now passes clean (0 errors, 0 warnings)
+
+3. Committed full app implementation
+   - 25 files changed, 2189 insertions
+   - New screens: index, about, calendar, explore, golden-day-splash,
+     pick-golden-day, tabs-layout
+   - New components: AmoreModal, QuoteModal, SettingsModal
+   - New constants: colors, quotes
+   - New contexts: GoldenDayContext
+   - Updated app.json: app name "364 Ways to Say No", v2.0.0, EAS config
+   - Added eas.json, datetimepicker + lucide-react-native deps
+
+4. Set up GitHub remote and pushed
+   - Installed gh CLI via Homebrew
+   - Added remote: https://github.com/greenhill32/rails-364-clean
+   - Resolved conflict with GitHub auto-generated README, pushed successfully
+
+OUTSTANDING ISSUES (carried forward)
+--------------------------------------
+- Fonts not the same across screens
+- Calendar screen: gold pill not centered on highlighted day
+- No settings cog / settings modal wired up yet
