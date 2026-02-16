@@ -1,0 +1,102 @@
+PROGRESS LOG - February 14, 2026
+
+================================================================================
+WHAT WE DID TODAY
+================================================================================
+
+1. Added routing for pick-golden-day.tsx screen
+   - File already existed: app/pick-golden-day.tsx
+   - Confirmed Expo Router file-based routing auto-generates route from filename
+   - No additional routing config needed; route `/pick-golden-day` works automatically
+
+2. Fixed about.tsx screen flow
+   - Added auto-progression: navigates to `/pick-golden-day` after 3 seconds
+   - Kept "Begin" button so users can skip ahead manually
+   - Pattern: useEffect with setTimeout → router.replace()
+
+3. Created CLAUDE.md project documentation
+   - Comprehensive guide for future Claude Code instances
+   - Covers: development commands, routing architecture, directory structure
+   - Documents: tech stack, common patterns, styling conventions, path aliases
+   - Includes current screen navigation flow and onboarding pattern
+
+
+================================================================================
+WHAT WENT RIGHT
+================================================================================
+
+✓ Expo Router file-based routing eliminated need for manual route registration
+  - File structure automatically becomes API surface
+  - Clean, intuitive system for adding new screens
+
+✓ Quick fix for about.tsx using proven pattern
+  - Reused auto-progression pattern from index.tsx
+  - Both button and auto-navigation provide good UX options
+
+✓ CLAUDE.md creation captured project knowledge efficiently
+  - File-based routing, screen flow, styling conventions now documented
+  - Tech stack details preserved for next session
+  - Path aliases, build config, common patterns all noted
+
+✓ Project uses TypeScript with strict mode - type safety enabled
+
+
+================================================================================
+WHAT WENT WRONG
+================================================================================
+
+✗ Initial confusion about routing setup
+  - I didn't immediately recognize Expo Router handles routes via file structure
+  - Expected manual route config when none was needed
+  - Required clarification from user
+
+✗ Incomplete understanding of app flow on first pass
+  - Didn't check about.tsx until asked to fix the "second screen stops" issue
+  - Should have mapped full screen navigation flow earlier
+
+
+================================================================================
+LESSONS LEARNED
+================================================================================
+
+1. Expo Router is file-based by default
+   - Files in app/ directory automatically become routes
+   - Filename → URL path (pick-golden-day.tsx → /pick-golden-day)
+   - No manual routing setup needed; conventions over configuration
+
+2. Ask clarifying questions upfront
+   - "Either add button or auto progress" was ambiguous
+   - Could have asked user preference before implementing
+   - Instead, added auto-progress which complemented existing button
+
+3. Map screen flows early when working with navigation
+   - Index → About → PickGoldenDay → Calendar (not yet created)
+   - Understanding the full flow prevents duplicate work
+
+4. Auto-progression pattern is useful for onboarding
+   - User can wait or click to skip
+   - Pattern: useEffect + setTimeout + router.replace()
+   - Improves UX vs. forcing user to click
+
+5. Document architecture decisions immediately
+   - CLAUDE.md captures routing approach, styling, tech stack
+   - Prevents future sessions from re-learning project structure
+   - Focus on "why" and "where things go" not "how to use React"
+
+6. TypeScript with strict mode catches issues early
+   - Project already has strict: true
+   - Leverage this for catching bugs in new code
+
+
+================================================================================
+NEXT STEPS (RECOMMENDATIONS)
+================================================================================
+
+- we are building minimalistic, no friction submission just to get working testflight submission
+- all previous attempts have failed. we are building bare bones.
+- to see where error is. I have submitted. using eas build -p ios --auto-submit
+- now waiting
+
+Fonts not the same.
+on calendar screen th highlighted gold day the gold pill is not centered on day
+there is no settings cog and settings modal
