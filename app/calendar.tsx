@@ -17,6 +17,7 @@ import { useGoldenDay } from '@/contexts/GoldenDayContext';
 import { QuoteModal } from '@/components/QuoteModal';
 import { AmoreModal } from '@/components/AmoreModal';
 import { SettingsModal } from '@/components/SettingsModal';
+import { PaywallModal } from '@/components/PaywallModal';
 
 const { width } = Dimensions.get('window');
 const DAY_SIZE = (width - 60) / 7;
@@ -37,7 +38,7 @@ function getFirstDayOfMonth(month: number, year: number): number {
 }
 
 export default function CalendarScreen() {
-  const { goldenDay } = useGoldenDay();
+  const { goldenDay, quotesUsed, isPurchased, incrementQuotesUsed } = useGoldenDay();
   const goldenDayMonth = goldenDay?.month ?? -1;
   const goldenDayDate = goldenDay?.date ?? -1;
 
@@ -47,6 +48,7 @@ export default function CalendarScreen() {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [showAmoreModal, setShowAmoreModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showPaywallModal, setShowPaywallModal] = useState(false);
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
@@ -70,7 +72,10 @@ export default function CalendarScreen() {
     const isGoldenDay = currentMonth === goldenDayMonth && day === goldenDayDate;
     if (isGoldenDay) {
       setShowAmoreModal(true);
+    } else if (!isPurchased && quotesUsed >= 3) {
+      setShowPaywallModal(true);
     } else {
+      incrementQuotesUsed();
       setCurrentQuote(getRandomQuote());
       setShowQuoteModal(true);
     }
@@ -189,6 +194,7 @@ export default function CalendarScreen() {
         visible={showQuoteModal}
         quote={currentQuote}
         onClose={() => { setShowQuoteModal(false); setCurrentQuote(null); }}
+        quotesUsed={quotesUsed}
       />
       <AmoreModal
         visible={showAmoreModal}
@@ -197,6 +203,10 @@ export default function CalendarScreen() {
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
+      />
+      <PaywallModal
+        visible={showPaywallModal}
+        onClose={() => setShowPaywallModal(false)}
       />
     </View>
   );

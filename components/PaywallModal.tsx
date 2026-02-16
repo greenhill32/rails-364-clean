@@ -1,30 +1,13 @@
-import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, Share } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { X } from 'lucide-react-native';
-import { Quote } from '@/constants/quotes';
 import Colors from '@/constants/colors';
 
-type QuoteModalProps = {
+type PaywallModalProps = {
   visible: boolean;
-  quote: Quote | null;
   onClose: () => void;
-  quotesUsed: number;
 };
 
-export function QuoteModal({ visible, quote, onClose, quotesUsed }: QuoteModalProps) {
-  const handleShare = async () => {
-    if (!quote) return;
-
-    try {
-      await Share.share({
-        message: `"${quote.text}"\n\n— 364 Ways to Say No`,
-      });
-    } catch (error) {
-      console.error('Share failed:', error);
-    }
-  };
-
-  if (!quote) return null;
-
+export function PaywallModal({ visible, onClose }: PaywallModalProps) {
   return (
     <Modal
       visible={visible}
@@ -54,8 +37,12 @@ export function QuoteModal({ visible, quote, onClose, quotesUsed }: QuoteModalPr
             <View style={styles.line} />
           </View>
 
-          {/* Quote Text */}
-          <Text style={styles.quoteText}>{`\u201c${quote.text}\u201d`}</Text>
+          {/* Title */}
+          <Text style={styles.title}>364 Ways to Say No</Text>
+
+          {/* Body */}
+          <Text style={styles.body}>You've used your 3 free excuses.</Text>
+          <Text style={styles.subCopy}>Unlock all 364 to keep saying no in style.</Text>
 
           {/* Bottom Divider */}
           <View style={styles.divider}>
@@ -64,29 +51,14 @@ export function QuoteModal({ visible, quote, onClose, quotesUsed }: QuoteModalPr
             <View style={styles.line} />
           </View>
 
-          {/* Counter */}
-          <Text style={styles.counter}>{quotesUsed} / 364</Text>
-
-          {/* Share Button */}
+          {/* Unlock Button */}
           <TouchableOpacity
-            style={styles.shareButton}
-            onPress={handleShare}
+            style={styles.unlockButton}
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel="Share quote"
+            accessibilityLabel="Unlock all 364"
           >
-            <Text style={styles.shareButtonText}>Share</Text>
-          </TouchableOpacity>
-
-          {/* Noted Button */}
-          <TouchableOpacity
-            style={styles.notedButton}
-            onPress={onClose}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Dismiss"
-          >
-            <Text style={styles.notedButtonText}>Noted</Text>
+            <Text style={styles.unlockButtonText}>Unlock All 364</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -137,47 +109,35 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
     marginHorizontal: 12,
   },
-  quoteText: {
-    fontSize: 18,
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.gold,
+    textAlign: 'center',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  body: {
+    fontSize: 16,
     color: Colors.cream,
     textAlign: 'center',
-    lineHeight: 28,
-    fontStyle: 'italic',
-    paddingHorizontal: 10,
+    marginBottom: 8,
   },
-  counter: {
-    fontSize: 12,
-    color: Colors.gold,
+  subCopy: {
+    fontSize: 14,
+    color: Colors.cream,
     textAlign: 'center',
-    letterSpacing: 2,
-    opacity: 0.6,
-    marginBottom: 16,
+    opacity: 0.7,
+    lineHeight: 22,
   },
-  shareButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.gold,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 25,
-    alignSelf: 'center',
-    marginTop: 10,
-  },
-  shareButtonText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: Colors.gold,
-    letterSpacing: 1,
-  },
-  notedButton: {
+  unlockButton: {
     backgroundColor: Colors.gold,
     paddingVertical: 14,
     paddingHorizontal: 40,
     borderRadius: 25,
     alignSelf: 'center',
-    marginTop: 16,
   },
-  notedButtonText: {
+  unlockButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.backgroundDark,

@@ -408,6 +408,12 @@ export const QUOTES_364: Record<string, Quote[]> = {
   ]
 };
 
+// Get a random quote from the full collection
+export function getRandomQuote(): Quote {
+  const all = getAllQuotes();
+  return all[Math.floor(Math.random() * all.length)];
+}
+
 // Get all quotes as flat array with IDs
 export function getAllQuotes(): Quote[] {
   return [

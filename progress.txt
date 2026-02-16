@@ -133,6 +133,36 @@ WHAT WE DID
 
 OUTSTANDING ISSUES (carried forward)
 --------------------------------------
-- Fonts not the same across screens
-- Calendar screen: gold pill not centered on highlighted day
-- No settings cog / settings modal wired up yet
+- Fonts not the same across screens Garamond & Cormorant
+- Counter (X/364) is on QuoteModal — may also want it on calendar screen below "364" header
+
+
+================================================================================
+SESSION - February 16, 2026 (evening)
+================================================================================
+
+WHAT WE DID
+-----------
+
+1. Implemented quote counter + paywall gate
+   - Installed @react-native-async-storage/async-storage
+   - Added quotesUsed, isPurchased, incrementQuotesUsed to GoldenDayContext
+   - Both values persisted to AsyncStorage (quotes_used, is_purchased)
+   - Added "X / 364" counter to QuoteModal (below bottom divider, above Share)
+   - Created PaywallModal component (matches existing modal style)
+   - Gated calendar taps: first 3 free → QuoteModal, 4th+ → PaywallModal
+   - Counter persists across app restarts
+
+2. Bumped iOS buildNumber from "1" to "2" in app.json
+
+3. Attempted EAS build for App Store submission
+   - Hit free plan monthly iOS build limit (resets Mar 1, 2026)
+   - Tried local Xcode build as alternative
+   - Xcode took too long to index; deferred to next session
+
+TOMORROW
+--------
+- Local Xcode build: open ios/364WaystoSayNo.xcworkspace
+- Product → Archive → Distribute App → App Store Connect → Upload
+- Xcode may need to finish indexing first (leave it running a few minutes)
+
