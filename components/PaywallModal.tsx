@@ -41,7 +41,7 @@ export function PaywallModal({ visible, onClose }: PaywallModalProps) {
           <Text style={styles.title}>364 Ways to Say No</Text>
 
           {/* Body */}
-          <Text style={styles.body}>You've used your 3 free excuses.</Text>
+          <Text style={styles.body}>You&apos;ve used your 3 free excuses.</Text>
           <Text style={styles.subCopy}>Unlock all 364 to keep saying no in style.</Text>
 
           {/* Bottom Divider */}

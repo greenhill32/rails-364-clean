@@ -6,6 +6,7 @@ node_modules/
 # Expo
 .expo/
 dist/
+build/
 web-build/
 expo-env.d.ts
 
@@ -17,6 +18,8 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.cer
+*.csr
 
 # Metro
 .metro-health-check*

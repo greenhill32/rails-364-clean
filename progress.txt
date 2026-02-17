@@ -160,9 +160,52 @@ WHAT WE DID
    - Tried local Xcode build as alternative
    - Xcode took too long to index; deferred to next session
 
-TOMORROW
---------
-- Local Xcode build: open ios/364WaystoSayNo.xcworkspace
-- Product → Archive → Distribute App → App Store Connect → Upload
-- Xcode may need to finish indexing first (leave it running a few minutes)
+================================================================================
+SESSION - February 17, 2026
+================================================================================
+
+WHAT WE DID
+-----------
+
+1. Switched from EAS to CLI-based iOS build pipeline
+   - Avoided Xcode GUI entirely using xcodebuild commands
+   - Much more predictable and repeatable than EAS
+
+2. Set up iOS signing
+   - Generated CSR and private key for distribution certificate
+   - Downloaded distribution certificate from Apple Developer account
+   - Imported both key and cert to Keychain
+   - Verified signing identity: Apple Distribution: lee manley (ZARBU8R8ML)
+
+3. Built, archived, exported, and uploaded to App Store Connect
+   - Bumped buildNumber from 2 → 3 in app.json
+   - Ran xcodebuild archive with Release config
+   - Exported signed IPA using ExportOptions.plist
+   - Uploaded IPA to App Store Connect using xcrun altool
+   - Build 3 successfully submitted (Delivery UUID: 061413ff-425c-4df7-b909-11e86961e5e8)
+
+4. Created reusable build-ios.sh script
+   - Single command builds, exports, and uploads
+   - Prompts for new build number (auto-increments if not specified)
+   - Automatically updates app.json with new build number
+   - Prompts for app-specific password at upload stage
+   - Removes need to ever use Xcode GUI again
+
+5. Updated .gitignore
+   - Added build/ (archives and exports)
+   - Added *.cer, *.csr (signing files)
+
+RESULT
+------
+✓ App Build 3 (v2.0.0) submitted to App Store Connect
+✓ No crashes from TestFlight
+✓ Complete CLI workflow replaces EAS and Xcode GUI
+✓ Ready for production
+
+NEXT TIME
+---------
+- Run: ./build-ios.sh
+- Enter new build number when prompted
+- Enter app-specific password
+- Done
 
