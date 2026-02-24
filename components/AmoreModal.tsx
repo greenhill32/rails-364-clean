@@ -1,6 +1,6 @@
-import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, Image } from 'react-native';
-import { X } from 'lucide-react-native';
 import Colors from '@/constants/colors';
+import { X } from 'lucide-react-native';
+import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type AmoreModalProps = {
   visible: boolean;
@@ -86,9 +86,10 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: Colors.backgroundDark,
     borderRadius: 24,
-    padding: 60,
+    padding: 45,
     width: '100%',
     maxWidth: 380,
+    marginTop: 28,
     borderWidth: 2,
     borderColor: Colors.gold,
     position: 'relative',

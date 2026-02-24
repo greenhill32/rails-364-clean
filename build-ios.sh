@@ -38,6 +38,16 @@ rm -rf build/
 echo "Running expo prebuild..."
 npx expo prebuild --platform ios --no-install
 
+# Inject RNPurchases pod (not auto-linked by Expo)
+if ! grep -q "RNPurchases" ios/Podfile; then
+  echo "Injecting RNPurchases into Podfile..."
+  sed -i '' 's/  config = use_native_modules!(config_command)/  config = use_native_modules!(config_command)\n\n  pod '"'"'RNPurchases'"'"', :path => '"'"'..\/node_modules\/react-native-purchases'"'"'/' ios/Podfile
+fi
+
+# Install pods (required — not done by prebuild with --no-install)
+echo "Installing pods..."
+cd ios && pod install --repo-update && cd ..
+
 # Archive
 echo "Archiving..."
 xcodebuild -workspace "$WORKSPACE" \

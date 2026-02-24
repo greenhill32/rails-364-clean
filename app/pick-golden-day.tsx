@@ -85,11 +85,13 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     color: Colors.gold,
     letterSpacing: 1,
+    fontFamily: 'Didot',
   },
   subtitle: {
     fontSize: 18,
     color: Colors.gold,
     letterSpacing: 4,
+    fontFamily: 'Didot',
   },
   descriptionContainer: {
     alignItems: 'center',

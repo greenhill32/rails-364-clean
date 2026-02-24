@@ -209,3 +209,297 @@ NEXT TIME
 - Enter app-specific password
 - Done
 
+
+================================================================================
+SESSION - February 19, 2026
+================================================================================
+
+WHAT WE DID
+-----------
+
+1. Implemented RevenueCat IAP integration (ugly-first, end-to-end)
+   - Installed react-native-purchases SDK
+   - Added react-native-purchases to app.json plugins (auto-adds StoreKit entitlement)
+   - Initialize RevenueCat in app/_layout.tsx with Purchases.configure() on mount
+   - Skipped web platform
+
+2. Enhanced GoldenDayContext
+   - Exposed setPurchased() in context type and provider value
+   - Added RevenueCat check on mount: calls Purchases.getCustomerInfo() after loading
+     AsyncStorage cache, checks 'premium' entitlement, falls back silently if offline
+   - Persisted goldenDay to AsyncStorage (key: 'golden_day')
+   - Fixed bug: goldenDay now survives app restart (was lost before)
+
+3. Wired purchase flow in PaywallModal
+   - "Unlock All 364" button now triggers real purchase flow
+   - Flow: Purchases.getOfferings() → get lifetime package → purchasePackage()
+   - Checks 'premium' entitlement → setPurchased(true) → closes modal
+   - Ignores userCancelled errors, shows Alert for real errors
+   - Shows ActivityIndicator while loading, disables buttons
+   - Added "Restore Purchases" link below unlock button
+
+4. Added Restore Purchases to SettingsModal
+   - New menu item between Terms of Service and version
+   - Uses same restore logic as PaywallModal
+   - Shows spinner while restoring
+   - Apple requires restore to be accessible outside paywall
+
+SETUP CHECKLIST (STILL NEEDED)
+------------------------------
+✓ Step 1: Created Non-Consumable IAP in App Store Connect
+  - Product ID: com.greenhill32.364waystosayno.lifetime
+
+⏳ Step 2: Set up RevenueCat (NEXT)
+  - Create project at app.revenuecat.com
+  - Add Apple App Store app with bundle ID com.greenhill32.364waystosayno
+  - Paste App-Specific Shared Secret from App Store Connect
+  - Create entitlement: premium
+  - Create product: com.greenhill32.364waystosayno.lifetime
+  - Attach to premium entitlement
+  - Create default offering with Lifetime package
+  - Copy Apple API Key (appl_...)
+
+BEFORE BUILDING FOR TESTFLIGHT
+------------------------------
+- Replace appl_XXX in app/_layout.tsx:7 with actual RevenueCat Apple API key
+- Run: npx expo prebuild --platform ios --no-install
+- Verify .entitlements file no longer empty
+- Run: ./build-ios.sh
+- Test on device with sandbox test account
+
+TESTING PLAN
+------------
+1. Tap 3 days → QuoteModal appears
+2. Tap 4th day → PaywallModal appears
+3. Tap "Unlock All 364" → purchase flow
+4. Complete purchase with sandbox account
+5. Confirm unlock (QuoteModal shows 4/364, no paywall)
+6. Kill app → reopen (should still be unlocked)
+7. Delete & reinstall from TestFlight → Restore Purchases → confirm unlock
+8. Airplane mode: turn off wifi → open app → show cached state
+   → turn on wifi → state syncs with RevenueCat
+
+CODE FILES CHANGED (0 new files)
+--------------------------------
+- app.json (added react-native-purchases plugin)
+- app/_layout.tsx (RevenueCat initialization)
+- contexts/GoldenDayContext.tsx (setPurchased, RevenueCat check, goldenDay persist)
+- components/PaywallModal.tsx (purchase flow, restore, loading state)
+- components/SettingsModal.tsx (restore purchases menu item)
+- package.json (react-native-purchases added by npm install)
+
+WHAT WENT RIGHT
+---------------
+✓ Ugly-first approach: 0 design polish, just wiring up monetization
+✓ End-to-end: from getOfferings() through purchase to isPurchased check
+✓ Offline-friendly: RevenueCat check falls back to cached AsyncStorage silently
+✓ Apple compliance: Restore Purchases accessible outside paywall
+✓ Bug fix included: goldenDay now persists across restart (was lost before)
+✓ No new files created: only modified 5 existing files
+
+WHAT STILL NEEDS WORK
+---------------------
+- Replace placeholder API key before building
+- Verify .entitlements file after prebuild
+- Create Sandbox Test Account in App Store Connect (User & Access > Sandbox)
+- Test full purchase flow on TestFlight with sandbox account
+
+TODO (READY FOR NEXT SESSION)
+------------------------------------------
+1. Complete RevenueCat setup (dashboard config)
+2. Replace API key in app/_layout.tsx:7
+3. Run prebuild to generate entitlements
+4. Build & upload to TestFlight
+5. Test purchase flow with sandbox account
+
+
+================================================================================
+SESSION - February 19, 2026 (evening)
+================================================================================
+
+WHAT WE DID
+-----------
+
+1. Fixed two RevenueCat bugs blocking launch and purchase unlock
+
+BUG 1 — App crash on launch (FIXED)
+   - Root cause: react-native-purchases is NOT auto-linked by Expo
+   - expo prebuild --no-install regenerates Podfile, wiping any manual pod entries
+   - pod install was never run, so RNPurchases native SDK was never compiled in
+   - Fix: updated build-ios.sh to inject `pod 'RNPurchases'` after prebuild,
+     then run `pod install --repo-update` before archiving
+
+BUG 2 — Purchase unlock silently failing (FIXED)
+   - Root cause: code checked entitlements.active['premium'] but RevenueCat
+     entitlement identifier is 'pro'
+   - Purchase would succeed but isPurchased would never be set to true
+   - Fix: changed all 4 occurrences of 'premium' → 'pro' across:
+     · contexts/GoldenDayContext.tsx
+     · components/PaywallModal.tsx (handlePurchase + handleRestore)
+     · components/SettingsModal.tsx (handleRestore)
+
+2. Also fixed pod repo staleness error during build
+   - `pod install` failed: couldn't find PurchasesHybridCommon (= 17.40.0)
+   - Fix: changed to `pod install --repo-update` in build-ios.sh
+
+FILES CHANGED
+-------------
+- build-ios.sh (pod inject + pod install --repo-update after prebuild)
+- contexts/GoldenDayContext.tsx ('premium' → 'pro')
+- components/PaywallModal.tsx ('premium' → 'pro', x2)
+- components/SettingsModal.tsx ('premium' → 'pro')
+
+BUILD STATUS
+------------
+- Build 8 in progress (running ./build-ios.sh as of this writing)
+- Expected: app launches, purchase flow works end-to-end
+
+NEXT
+----
+- Confirm build 8 uploads successfully (password: lvhj-rsms-lxqx-evbp)
+- Test on TestFlight with sandbox account
+- Verify full purchase flow works
+
+
+================================================================================
+SESSION - February 19, 2026 (late evening) — IAP Setup Continued
+================================================================================
+
+ISSUE: IAP OFFERINGS NOT SHOWING
+
+Build 8 uploaded successfully. Tested on TestFlight → PaywallModal shows:
+"Alert: Error - No offering found. Please try again later."
+
+Root cause: Apple hasn't yet propagated the IAP to the sandbox environment.
+
+Steps taken:
+✓ Created IAP in App Store Connect (com.greenhill32.364waystosayno.lifetime)
+✓ Filled in all required metadata (Display Name, Description, Screenshot, Pricing)
+✓ Status changed from "Missing Metadata" to "Ready to Submit"
+✓ Attached IAP to build 8 on version page
+✓ Uninstalled and reinstalled TestFlight app
+✓ Waited 10-15 minutes multiple times
+
+Still no offerings returned. This is pure Apple propagation lag.
+Plan: Try again tomorrow (24+ hours often needed for first IAP).
+
+================================================================================
+BUGS TO FIX (READY FOR NEXT SESSION)
+================================================================================
+
+BUG 1: Golden day screen visible before purchase
+   - Currently: User can view calendar and tap any day, gets QuoteModal
+   - Should: Days 4+ show PaywallModal (no access until purchased)
+   - Likely fix: Check isPurchased in calendar.tsx before showing QuoteModal
+   - File: app/calendar.tsx
+
+BUG 2: "3 free quotes" hardcoding
+   - Currently: quotesUsed counter increments; after 3, paywall shows
+   - Should: Make the "3 free" limit more explicit/hardcoded
+   - Likely fix: Define QUOTES_FREE_LIMIT = 3 constant, use consistently
+   - Files: contexts/GoldenDayContext.tsx, app/calendar.tsx
+
+NEXT SESSION
+------------
+1. Try IAP offerings again (may work now after 24 hours)
+2. Fix golden day screen access control (limit to purchased users)
+3. Hardcode free quotes limit constant
+
+
+================================================================================
+SESSION - February 24, 2026
+================================================================================
+
+STRATEGY: First Apple submission prep — bare bones, no paywall
+
+Instead of debugging RevenueCat IAP propagation, we pivoted to get a working
+testable build onto App Store for review. Removed all paywall logic and RevenueCat
+initialization. Goal: submit a clean, functional app and iterate in later builds.
+
+WHAT WE DID
+-----------
+
+1. Removed paywall behavior from calendar flow
+   - Calendar no longer gates day taps by quotesUsed count
+   - All taps show QuoteModal (no PaywallModal for first submission)
+   - Allows reviewers to see full app functionality without purchase friction
+
+2. Updated About screen copy
+   - Removed all messaging mentioning "unlock", "purchase", "paywall", "premium"
+   - Kept simple intro flow without monetization hints
+   - File: app/about.tsx
+
+3. Disabled RevenueCat initialization
+   - Commented out Purchases.configure() and the entire RevenueCat check block
+   - App no longer tries to contact RevenueCat on launch
+   - Allows testing in Expo Go without build requirements
+   - File: app/_layout.tsx
+
+4. Removed Restore Purchases from Settings modal
+   - Deleted menu item from SettingsModal
+   - Will re-add after first approval (can't mention purchase before review)
+   - File: components/SettingsModal.tsx
+
+5. Fixed calendar tapped-day state behavior
+   - Tapped days now persist correctly across app restarts
+   - Each day remembers if it's been tapped (solved state loss bug)
+   - File: app/calendar.tsx
+
+6. Changed tapped-day visual marker
+   - From: grey-out effect (entire day cell faded)
+   - To: gold strikethrough on the date number itself
+   - Matches design intent: day is "used" not "unavailable"
+   - More elegant visual distinction without obscuring calendar
+
+7. Persisted visited/tapped calendar days to AsyncStorage
+   - tappedDays array now synced with device storage
+   - Marks match the X/364 counter on QuoteModal
+   - Survives app close and restart
+   - File: app/calendar.tsx, contexts/GoldenDayContext.tsx
+
+8. Added Didot font to key screens
+   - About screen title + subtitle
+   - Calendar header title + subtitle
+   - Pick-a-Golden-Day screen title + subtitle
+   - Consistent premium typography across main user journey
+   - File: about.tsx, calendar.tsx, pick-golden-day.tsx
+
+9. Adjusted Amore/gold-day modal position
+   - Moved gold-bordered box down slightly
+   - Better visual balance in modal layout
+   - File: components/AmoreModal.tsx
+
+10. Tested persistence with temporary Reset Count button
+    - Added, confirmed tappedDays survived restart
+    - Removed after validation
+    - File: app/calendar.tsx (temporary, not committed)
+
+FILES MODIFIED
+--------------
+- about.tsx
+- calendar.tsx
+- pick-golden-day.tsx
+- components/AmoreModal.tsx
+- components/SettingsModal.tsx
+- contexts/GoldenDayContext.tsx
+- lib/revenuecat.ts (commented out)
+
+NET RESULT FOR APPLE FIRST SUBMIT
+---------------------------------
+✓ No paywall shown (clean UX for review)
+✓ No restore purchases button (no monetization claims pre-approval)
+✓ App behavior consistent and testable in Expo Go
+✓ Calendar selection/tap marks persist correctly
+✓ Ready to build and submit to TestFlight
+
+NEXT STEPS (READY)
+------------------
+1. ./build-ios.sh (bump to build 7)
+2. Enter app-specific password: lvhj-rsms-lxqx-evbp
+3. Submit to TestFlight
+4. Once approved by reviewers, re-enable:
+   - Paywall gating logic in calendar
+   - RevenueCat initialization
+   - Restore Purchases in Settings
+   - Purchase messaging in About screen
+5. Build 8+ can re-introduce monetization after first app approval

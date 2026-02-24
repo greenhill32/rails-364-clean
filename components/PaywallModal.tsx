@@ -1,6 +1,10 @@
-import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
+import { useState } from 'react';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { X } from 'lucide-react-native';
+import Purchases from 'react-native-purchases';
 import Colors from '@/constants/colors';
+import { useGoldenDay } from '@/contexts/GoldenDayContext';
+import { ensureRevenueCatConfigured } from '@/lib/revenuecat';
 
 type PaywallModalProps = {
   visible: boolean;
@@ -8,6 +12,51 @@ type PaywallModalProps = {
 };
 
 export function PaywallModal({ visible, onClose }: PaywallModalProps) {
+  const { setPurchased } = useGoldenDay();
+  const [loading, setLoading] = useState(false);
+
+  const handlePurchase = async () => {
+    setLoading(true);
+    try {
+      await ensureRevenueCatConfigured();
+      const offerings = await Purchases.getOfferings();
+      const lifetime = offerings.current?.lifetime;
+      if (!lifetime) {
+        Alert.alert('Error', 'No offering found. Please try again later.');
+        return;
+      }
+      const { customerInfo } = await Purchases.purchasePackage(lifetime);
+      if (customerInfo.entitlements.active['pro']) {
+        setPurchased(true);
+        onClose();
+      }
+    } catch (e: any) {
+      if (!e.userCancelled) {
+        Alert.alert('Purchase Error', e.message || 'Something went wrong.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    setLoading(true);
+    try {
+      await ensureRevenueCatConfigured();
+      const customerInfo = await Purchases.restorePurchases();
+      if (customerInfo.entitlements.active['pro']) {
+        setPurchased(true);
+        onClose();
+      } else {
+        Alert.alert('No Purchases Found', 'We could not find any previous purchases to restore.');
+      }
+    } catch (e: any) {
+      Alert.alert('Restore Error', e.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -55,10 +104,27 @@ export function PaywallModal({ visible, onClose }: PaywallModalProps) {
           <TouchableOpacity
             style={styles.unlockButton}
             activeOpacity={0.8}
+            onPress={handlePurchase}
+            disabled={loading}
             accessibilityRole="button"
             accessibilityLabel="Unlock all 364"
           >
-            <Text style={styles.unlockButtonText}>Unlock All 364</Text>
+            {loading ? (
+              <ActivityIndicator color={Colors.backgroundDark} />
+            ) : (
+              <Text style={styles.unlockButtonText}>Unlock All 364</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Restore Purchases */}
+          <TouchableOpacity
+            style={styles.restoreButton}
+            onPress={handleRestore}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel="Restore purchases"
+          >
+            <Text style={styles.restoreButtonText}>Restore Purchases</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -136,11 +202,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 25,
     alignSelf: 'center',
+    minWidth: 180,
+    alignItems: 'center',
   },
   unlockButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.backgroundDark,
     letterSpacing: 1,
+  },
+  restoreButton: {
+    alignSelf: 'center',
+    marginTop: 16,
+    padding: 8,
+  },
+  restoreButtonText: {
+    fontSize: 13,
+    color: Colors.cream,
+    opacity: 0.6,
   },
 });

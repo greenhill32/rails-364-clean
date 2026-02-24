@@ -60,7 +60,6 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
             <Text style={styles.menuItemText}>Terms of Service</Text>
             <Text style={styles.menuItemChevron}>›</Text>
           </TouchableOpacity>
-
           <View style={styles.divider} />
 
           <View style={styles.versionContainer}>

@@ -39,14 +39,14 @@ export default function AboutScreen() {
               <View style={styles.featureIcon}>
                 <Text style={{ color: Colors.gold }}>✦</Text>
               </View>
-              <Text style={styles.featureText}>3 free excuses to start</Text>
+              <Text style={styles.featureText}>A fresh excuse every day</Text>
             </View>
 
             <View style={styles.featureItem}>
               <View style={styles.featureIcon}>
                 <Text style={styles.infinitySymbol}>∞</Text>
               </View>
-              <Text style={styles.featureText}>Unlock all 364 with one purchase</Text>
+              <Text style={styles.featureText}>All 364 included for launch</Text>
             </View>
           </View>
         </View>
@@ -57,7 +57,7 @@ export default function AboutScreen() {
           </TouchableOpacity>
 
           <Text style={styles.footerText}>
-            Elegantly decline, almost every time.
+            Elegantly decline, every single time.
           </Text>
         </View>
       </View>
@@ -98,12 +98,14 @@ const styles = StyleSheet.create({
     fontSize: 72,
     color: Colors.gold,
     fontStyle: 'italic',
+    fontFamily: 'Didot',
   },
   subtitle: {
     fontSize: 18,
     color: Colors.gold,
     letterSpacing: 6,
     marginTop: -5,
+    fontFamily: 'Didot',
   },
   descriptionContainer: {
     alignItems: 'center',

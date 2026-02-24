@@ -7,10 +7,9 @@ type QuoteModalProps = {
   visible: boolean;
   quote: Quote | null;
   onClose: () => void;
-  quotesUsed: number;
 };
 
-export function QuoteModal({ visible, quote, onClose, quotesUsed }: QuoteModalProps) {
+export function QuoteModal({ visible, quote, onClose }: QuoteModalProps) {
   const handleShare = async () => {
     if (!quote) return;
 
@@ -63,9 +62,6 @@ export function QuoteModal({ visible, quote, onClose, quotesUsed }: QuoteModalPr
             <View style={styles.diamond} />
             <View style={styles.line} />
           </View>
-
-          {/* Counter */}
-          <Text style={styles.counter}>{quotesUsed} / 364</Text>
 
           {/* Share Button */}
           <TouchableOpacity
@@ -144,14 +140,6 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontStyle: 'italic',
     paddingHorizontal: 10,
-  },
-  counter: {
-    fontSize: 12,
-    color: Colors.gold,
-    textAlign: 'center',
-    letterSpacing: 2,
-    opacity: 0.6,
-    marginBottom: 16,
   },
   shareButton: {
     backgroundColor: 'transparent',

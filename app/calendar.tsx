@@ -17,7 +17,6 @@ import { useGoldenDay } from '@/contexts/GoldenDayContext';
 import { QuoteModal } from '@/components/QuoteModal';
 import { AmoreModal } from '@/components/AmoreModal';
 import { SettingsModal } from '@/components/SettingsModal';
-import { PaywallModal } from '@/components/PaywallModal';
 
 const { width } = Dimensions.get('window');
 const DAY_SIZE = (width - 60) / 7;
@@ -38,7 +37,7 @@ function getFirstDayOfMonth(month: number, year: number): number {
 }
 
 export default function CalendarScreen() {
-  const { goldenDay, quotesUsed, isPurchased, incrementQuotesUsed } = useGoldenDay();
+  const { goldenDay, quotesUsed, visitedDayKeys, markDayVisited, incrementQuotesUsed } = useGoldenDay();
   const goldenDayMonth = goldenDay?.month ?? -1;
   const goldenDayDate = goldenDay?.date ?? -1;
 
@@ -48,8 +47,6 @@ export default function CalendarScreen() {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [showAmoreModal, setShowAmoreModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showPaywallModal, setShowPaywallModal] = useState(false);
-
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -69,11 +66,12 @@ export default function CalendarScreen() {
   };
 
   const handleDayPress = (day: number) => {
+    const dayKey = `${currentYear}-${currentMonth}-${day}`;
+    markDayVisited(dayKey);
+
     const isGoldenDay = currentMonth === goldenDayMonth && day === goldenDayDate;
     if (isGoldenDay) {
       setShowAmoreModal(true);
-    } else if (!isPurchased && quotesUsed >= 3) {
-      setShowPaywallModal(true);
     } else {
       incrementQuotesUsed();
       setCurrentQuote(getRandomQuote());
@@ -98,6 +96,7 @@ export default function CalendarScreen() {
         currentYear === today.getFullYear();
 
       const isGoldenDay = currentMonth === goldenDayMonth && day === goldenDayDate;
+      const isVisitedDay = visitedDayKeys.includes(`${currentYear}-${currentMonth}-${day}`);
 
       days.push(
         <TouchableOpacity
@@ -114,6 +113,7 @@ export default function CalendarScreen() {
             styles.dayText,
             isToday && !isGoldenDay && styles.todayText,
             isGoldenDay && styles.goldDayText,
+            isVisitedDay && !isGoldenDay && styles.visitedDayText,
           ]}>
             {day}
           </Text>
@@ -147,6 +147,7 @@ export default function CalendarScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>364</Text>
           <Text style={styles.headerSubtitle}>WAYS TO SAY NO</Text>
+          <Text style={styles.counter}>{quotesUsed} / 364</Text>
         </View>
 
         {/* Month Navigation */}
@@ -194,7 +195,6 @@ export default function CalendarScreen() {
         visible={showQuoteModal}
         quote={currentQuote}
         onClose={() => { setShowQuoteModal(false); setCurrentQuote(null); }}
-        quotesUsed={quotesUsed}
       />
       <AmoreModal
         visible={showAmoreModal}
@@ -203,10 +203,6 @@ export default function CalendarScreen() {
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
-      />
-      <PaywallModal
-        visible={showPaywallModal}
-        onClose={() => setShowPaywallModal(false)}
       />
     </View>
   );
@@ -239,6 +235,7 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     fontStyle: 'italic',
     letterSpacing: -1,
+    fontFamily: 'Didot',
   },
   headerSubtitle: {
     fontSize: 14,
@@ -246,6 +243,15 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     letterSpacing: 4,
     marginTop: -5,
+    fontFamily: 'Didot',
+  },
+  counter: {
+    fontSize: 12,
+    color: Colors.gold,
+    textAlign: 'center',
+    letterSpacing: 2,
+    opacity: 0.6,
+    marginTop: 12,
   },
   monthHeader: {
     flexDirection: 'row',
@@ -315,6 +321,11 @@ const styles = StyleSheet.create({
   goldDayText: {
     color: Colors.backgroundDark,
     fontWeight: '700',
+  },
+  visitedDayText: {
+    color: Colors.gold,
+    textDecorationLine: 'line-through',
+    textDecorationColor: Colors.gold,
   },
   goldIndicator: {
     position: 'absolute',
