@@ -1,4 +1,6 @@
 import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, Share } from 'react-native';
+import { useRef } from 'react';
+import ViewShot from 'react-native-view-shot';
 import { X } from 'lucide-react-native';
 import { Quote } from '@/constants/quotes';
 import Colors from '@/constants/colors';
@@ -10,12 +12,16 @@ type QuoteModalProps = {
 };
 
 export function QuoteModal({ visible, quote, onClose }: QuoteModalProps) {
+  const viewShotRef = useRef<ViewShot>(null);
+
   const handleShare = async () => {
-    if (!quote) return;
+    if (!quote || !viewShotRef.current) return;
 
     try {
+      const uri = await viewShotRef.current.capture();
       await Share.share({
-        message: `"${quote.text}"\n\n— 364 Ways to Say No`,
+        url: uri,
+        message: '364 Ways to Say No',
       });
     } catch (error) {
       console.error('Share failed:', error);
@@ -32,8 +38,41 @@ export function QuoteModal({ visible, quote, onClose }: QuoteModalProps) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Close Button */}
+
+        {/* Card wrapper — relative so close button can sit absolutely over it */}
+        <View style={styles.cardWrapper}>
+
+          {/* ViewShot captures only this — no buttons */}
+          <ViewShot
+            ref={viewShotRef}
+            options={{ format: 'png', quality: 1 }}
+          >
+            <View style={styles.modalContainer}>
+
+              {/* Top Divider */}
+              <View style={styles.divider}>
+                <View style={styles.line} />
+                <View style={styles.diamond} />
+                <View style={styles.line} />
+              </View>
+
+              {/* Quote Text */}
+              <Text style={styles.quoteText}>{`\u201c${quote.text}\u201d`}</Text>
+
+              {/* Bottom Divider */}
+              <View style={styles.divider}>
+                <View style={styles.line} />
+                <View style={styles.diamond} />
+                <View style={styles.line} />
+              </View>
+
+              {/* Branding — visible in shared image */}
+              <Text style={styles.brandText}>364 Ways to Say No</Text>
+
+            </View>
+          </ViewShot>
+
+          {/* Close button — outside ViewShot so it won't appear in the shared image */}
           <Pressable
             style={styles.closeButton}
             onPress={onClose}
@@ -46,45 +85,30 @@ export function QuoteModal({ visible, quote, onClose }: QuoteModalProps) {
             </View>
           </Pressable>
 
-          {/* Top Divider */}
-          <View style={styles.divider}>
-            <View style={styles.line} />
-            <View style={styles.diamond} />
-            <View style={styles.line} />
-          </View>
-
-          {/* Quote Text */}
-          <Text style={styles.quoteText}>{`\u201c${quote.text}\u201d`}</Text>
-
-          {/* Bottom Divider */}
-          <View style={styles.divider}>
-            <View style={styles.line} />
-            <View style={styles.diamond} />
-            <View style={styles.line} />
-          </View>
-
-          {/* Share Button */}
-          <TouchableOpacity
-            style={styles.shareButton}
-            onPress={handleShare}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Share quote"
-          >
-            <Text style={styles.shareButtonText}>Share</Text>
-          </TouchableOpacity>
-
-          {/* Noted Button */}
-          <TouchableOpacity
-            style={styles.notedButton}
-            onPress={onClose}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Dismiss"
-          >
-            <Text style={styles.notedButtonText}>Noted</Text>
-          </TouchableOpacity>
         </View>
+
+        {/* Share Button */}
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={handleShare}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Share quote"
+        >
+          <Text style={styles.shareButtonText}>Share</Text>
+        </TouchableOpacity>
+
+        {/* Noted Button */}
+        <TouchableOpacity
+          style={styles.notedButton}
+          onPress={onClose}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss"
+        >
+          <Text style={styles.notedButtonText}>Noted</Text>
+        </TouchableOpacity>
+
       </View>
     </Modal>
   );
@@ -98,12 +122,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+  cardWrapper: {
+    width: '100%',
+    maxWidth: 340,
+    position: 'relative',
+  },
   modalContainer: {
     backgroundColor: Colors.backgroundDark,
     borderRadius: 20,
     padding: 30,
     width: '100%',
-    maxWidth: 340,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -141,6 +169,14 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     paddingHorizontal: 10,
   },
+  brandText: {
+    fontSize: 12,
+    color: Colors.gold,
+    textAlign: 'center',
+    letterSpacing: 2,
+    opacity: 0.6,
+    marginTop: 4,
+  },
   shareButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
@@ -149,7 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 25,
     alignSelf: 'center',
-    marginTop: 10,
+    marginTop: 16,
   },
   shareButtonText: {
     fontSize: 15,
