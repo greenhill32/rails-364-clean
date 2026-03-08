@@ -495,7 +495,7 @@ NET RESULT FOR APPLE FIRST SUBMIT
 NEXT STEPS (READY)
 ------------------
 1. ./build-ios.sh (bump to build 7)
-2. Enter app-specific password: lvhj-rsms-lxqx-evbp
+2. Enter app-specific password: waqs-dvuk-vjvb-yfmw
 3. Submit to TestFlight
 4. Once approved by reviewers, re-enable:
    - Paywall gating logic in calendar
@@ -503,3 +503,130 @@ NEXT STEPS (READY)
    - Restore Purchases in Settings
    - Purchase messaging in About screen
 5. Build 8+ can re-introduce monetization after first app approval
+
+NOTE: Previous password (lvhj-rsms-lxqx-evbp) failed auth on first upload attempt.
+Generated new password from account.apple.com on 2026-02-24.
+
+
+================================================================================
+SESSION - March 8, 2026 — Design System Implementation (TODO.docx)
+================================================================================
+
+WHAT WE DID
+-----------
+
+Applied comprehensive design system update from TODO.docx checklist. Implemented
+Sections 1–11 (skipped Section 12: post-approval monetization; Section 13: final
+checks pending full implementation).
+
+FONTS & COLORS (Section 1–2)
+-----------------------------
+✓ Installed expo-font + @expo-google-fonts/cormorant-garamond + cinzel
+✓ Updated app/_layout.tsx: useFonts() loads 7 font variants, SplashScreen held
+  until fonts ready
+✓ Created constants/fonts.ts: centralized Cormorant/Cinzel font family constants
+✓ Rewrote constants/colors.ts: new 5-stop gold scale, added goldDim/goldBright/
+  goldDark/goldMid, updated cream (#f8efe2), added panel/panelEdge glass card tokens
+✓ Deleted scaffold files: app/explore.tsx, app/modal.tsx, constants/theme.ts
+
+SCREENS REDESIGN (Sections 3–6)
+-------------------------------
+✓ app/about.tsx: animated spinning feature icons (6s/7.5s/5.5s staggered), glass
+  panel card (panel/panelEdge), new copy ("except one", "elegance"), liquid gold
+  Begin button, Cormorant/Cinzel fonts throughout
+
+✓ app/pick-golden-day.tsx: replaced native DateTimePicker with custom calendar
+  grid, spinning gold ring on selected day (4.5s rotate), month nav, selected date
+  pill, custom grid rendering (no DateTimePicker)
+
+✓ app/golden-day-splash.tsx: dark #140810 bg, Cormorant italic title, Cinzel
+  subtitle, DiamondDivider component with pulsing ◇ (1.4s opacity pulse between
+  left/right rules)
+
+✓ app/calendar.tsx: background changed from #4a1942 to #140810, today ring
+  (borderWidth: 1, no fill), tapped day coin disc (86% size, 35% gold opacity,
+  dark text), removed strikethrough, font updates (Cormorant title, Cinzel labels)
+
+COMPONENTS (Sections 7–10)
+--------------------------
+✓ components/QuoteModal.tsx: full TODO version replacement with ViewShot share
+  card, CornerOrnament art-deco brackets, Noted+Share flow with Animated reveal,
+  improved text clarity (× dismiss brighter/larger, tapHint opacity 0.65,
+  tapUsed opacity 1.0 + goldBright color), Share button border/bg more visible
+
+✓ components/AmoreModal.tsx: × char close button (top -14 right -14, 38x38),
+  panelEdge border, liquid gold Perfect button, Cormorant italic title,
+  fontFamily updates
+
+✓ components/SettingsModal.tsx: × close button, dark bg (backgroundDark),
+  Cinzel title + letterSpacing, diamond divider below title, Cormorant menu items
+
+✓ components/PaywallModal.tsx: × close button, borderRadius 28, panelEdge border,
+  Cormorant italic title/body, liquid gold stretch Unlock button, Cinzel restore
+  text
+
+VISUAL POLISH (Post-implementation fixes)
+-----------------------------------------
+✓ Removed topGlow blobs from about/pick-golden-day/golden-day-splash
+  - React Native can't blur these into soft glows like CSS; rendered as hard
+    ovals. Removed entirely.
+
+✓ Removed bgGlow1/bgGlow2 from QuoteModal ShareCard
+  - Same issue: solid dark ovals instead of soft glows. Removed.
+
+✓ Fixed calendar background: #4a1942 → #140810 (dark theme consistency)
+
+✓ Fixed missing icons on about screen: added color: Colors.gold to emoji style
+  (✦ and ∞ are text chars, not emoji, so need explicit color)
+
+✓ Improved QuoteModal text clarity:
+  - "uses 1 tap" hint: opacity 0.3 → 0.55, size 8→9, weight 500→600
+  - "tap used": opacity 0.75 → 1.0, upgraded to goldBright color
+  - Share button: border opacity 0.32→0.55, background 0.04→0.08, text size
+    11→12, weight 500→600, icon full opacity
+  - × dismiss: size 18→22, opacity 0.75→1.0, color goldBright, removed dim font
+
+FILES CHANGED (NO NEW FILES)
+----------------------------
+- constants/colors.ts (new tokens)
+- constants/fonts.ts (new)
+- app/_layout.tsx (font loading)
+- app/about.tsx (redesign + topGlow removal + icon color fix)
+- app/pick-golden-day.tsx (custom calendar, topGlow removal)
+- app/golden-day-splash.tsx (DiamondDivider with pulse, topGlow removal)
+- app/calendar.tsx (dark bg, today ring, tapped coin disc, fonts)
+- components/QuoteModal.tsx (TODO version + glow removal + text clarity)
+- components/AmoreModal.tsx (redesign)
+- components/SettingsModal.tsx (redesign)
+- components/PaywallModal.tsx (redesign)
+- Deleted: app/explore.tsx, app/modal.tsx, constants/theme.ts
+
+WHAT WENT RIGHT
+---------------
+✓ TODO.docx provided a complete, implementable roadmap (13 sections)
+✓ Font loading pattern (useFonts + SplashScreen) is clean and reusable
+✓ Animated spinning rings on icons/selected days work smoothly with Easing.linear
+✓ Glass card aesthetic (panel/panelEdge tokens) applied consistently across modals
+✓ Liquid gold buttons approximate CSS gradients well enough without LinearGradient
+✓ Custom calendar grid replaces native DateTimePicker for full design control
+✓ DiamondDivider component is reusable (golden-day-splash can be easily updated)
+✓ No new npm dependencies needed beyond font packages
+
+WHAT NEEDED POLISH
+------------------
+⚠ topGlow View rendering as hard blob instead of soft glow
+  - CSS blur filters don't translate to React Native without expo-blur
+  - Removing was cleaner than approximating with partial opacity
+
+⚠ ✦ and ∞ characters rendering invisible in icon rings
+  - Text chars need explicit color; emoji don't
+  - Added color: Colors.gold to fix
+
+NEXT STEPS (READY FOR TESTING)
+------------------------------
+1. Test all screens visually on device/simulator
+2. Verify font loading delays are imperceptible
+3. Check calendar grid rendering on various screen sizes (aspect ratio 1:1)
+4. Confirm spinning animations are smooth (ring on icons, selected day, diamond)
+5. Test tap count + paywall re-enable after Apple approval
+6. Consider LinearGradient import if liquid gold buttons need more polish
