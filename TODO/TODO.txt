@@ -1,1 +1,60 @@
-test
+# 364 Ways to Say No — TODO
+
+## USER FEEDBACK
+- [ ] Paywall: lighten the background slightly — current dark tone is too heavy
+- [ ] Counter (quotesUsed): should increment on BOTH "Noted" AND on dismiss/close, not only on Noted
+- [ ] Golden Day Splash screen: text is sitting too high on the screen — needs more top padding / vertical centering adjusted
+- [ ] Paywall NOTE: currently disabled because IAP is not yet Apple-approved. Once the app is approved the paywall will work correctly — do not wire it up to break again.
+
+---
+
+## P0 — CRITICAL
+
+- [ ] Wire the paywall trigger — currently PaywallModal exists but nothing triggers it (handleDayPress shows modal regardless of quotesUsed). Trigger on next tap after free limit is reached. NOTE: leave disabled until Apple approves the IAP.
+- [ ] Show price in paywall modal — fetch from RevenueCat offering and display before the purchase button. Users cannot commit without seeing cost.
+
+---
+
+## P1 — HIGH PRIORITY
+
+- [ ] Fix AmoreModal close button clipping — closeButton is `position: absolute, top: -14, right: -14` inside a container with `overflow: hidden`, which clips it. Move the Pressable outside the modalContainer (same pattern as QuoteModal).
+- [ ] Day-to-quote consistency — getRandomQuote() runs at tap time so same day can show different quotes each tap. Decide: deterministic (quote derived from day key) or random. The visited coin visual implies the day is "settled" — consider at minimum preventing the same quote twice in a row on the same day.
+- [ ] First-run affordance — new users open the calendar with no indication the day cells are tappable. Add a one-time tooltip or brief pulse animation on first visit.
+- [ ] Paywall modal design parity — the most important screen for business outcomes is the least polished modal. Match padding/size to AmoreModal (padding 45, maxWidth 380). Add Art Deco corner ornaments or value visualization.
+- [ ] Paywall copy — replace transactional copy ("You've used your 3 free excuses") with aspirational language: "Every day deserves the perfect answer. All 364 excuses, forever yours." Position as gaining something, not remediating a loss.
+- [ ] Explain "dismiss is free" — never mentioned in onboarding. Add one sentence in About screen or first-run tooltip in QuoteModal.
+
+---
+
+## P2 — MEDIUM PRIORITY
+
+- [ ] Golden Day re-entry stack bug — "Change Lucky Day" uses router.push('/pick-golden-day'), then golden-day-splash uses router.replace('/calendar'), leaving original calendar in the stack. Fix: use router.replace when entering change flow from calendar, or call router.dismissAll() in golden-day-splash before navigating.
+- [ ] Golden Day share card — the Amore moment should be shareable. An AmoreModal share card (differentiated from the excuse card) would drive word-of-mouth.
+- [ ] Golden Day emotional payoff — AmoreModal is underdesigned vs QuoteModal. Golden Day deserves more ceremony, not less.
+- [ ] AmoreModal wink GIF clipping — 380px height inside padded container clips on SE-class iPhones. Test and constrain height.
+- [ ] Retention mechanism — no way to bring users back. Options: (a) local notification via expo-notifications "X days left to say no elegantly this year", (b) milestone acknowledgment at 10/25/50 noted excuses, (c) year-end recap view of all visited days as filled calendar grid.
+- [ ] Share card: add the specific date (e.g. "March 9") to make it personal and more shareable as a moment.
+- [ ] Golden Day splash: auto-advance after 2s OR eliminate entirely and arrive directly at the calendar with Golden Day cell highlighted — removes an unnecessary tap from onboarding.
+
+---
+
+## P3 — POLISH
+
+- [ ] Counter framing — "12 / 364" reads as paywall pressure. Consider "12 days elegantly declined" or "12 / 364 days handled with grace."
+- [ ] Calendar header weight — headerTitle at fontSize 48 is too heavy on repeat visits. Reduce to 32–36px or make the counter more prominent (remove opacity ceiling, bump to 14px).
+- [ ] Remove goldIndicator dot on golden day cell — the 4px dot at bottom: 6 is invisible against the gold fill. Vestigial — remove it.
+- [ ] Month nav arrows — replace Unicode ‹ › glyphs (visual weight varies by system font) with Lucide ChevronLeft/ChevronRight or a custom View-border arrow matching the Art Deco aesthetic.
+- [ ] featureSub legibility in about.tsx — "Daily inspiration" / "Discover yours" at fontSize 9, opacity 0.5 in Cinzel is below legible threshold on device. Bump to 10–11px at 70% opacity, or remove entirely.
+- [ ] Button minHeight standardisation — primary CTA varies: 62 (about), 58 (pick-golden-day, golden-day-splash), 56 (QuoteModal), 52 (PaywallModal). Set one token.
+- [ ] cormorantTitle font alias — Fonts.cormorantTitle and Fonts.cormorantLight both resolve to CormorantGaramond_300Light_Italic. Either load a true bold-italic variant for display titles or remove the alias distinction.
+- [ ] Background token fragmentation — screens hardcode '#140810' as const BG while modals use Colors.backgroundDark ('#2d0f28'). Consolidate into colors.ts so tokens are the source of truth.
+- [ ] ScrollView around calendar grid — unnecessary on modern devices, communicates "there may be more content below." Consider removing and handling SE-class screens via reduced paddingTop.
+- [ ] tappedDayText color '#2d0f28' is hardcoded — should reference Colors.backgroundDark.
+- [ ] golden-day-splash entrance animation — the only onboarding transition without motion. A simple fade-up would complete the sequence.
+
+---
+
+## NOTES
+- Paywall is intentionally disabled pending Apple IAP approval. PaywallModal component is complete and wired to RevenueCat — just needs the trigger in handleDayPress/handleNoted once approved.
+- Paywall gates free excuses only. Golden Day (AmoreModal) is always free — this is intentional.
+- "Dismiss is free, Noted costs 1 tap" is the core economy mechanic. Counter increments on both noted AND close (per user feedback — see top of file).

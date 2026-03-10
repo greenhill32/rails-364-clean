@@ -1,18 +1,26 @@
-// Art Deco color palette for 364 Ways to Say No
+// Design tokens — 364 Ways to Say No
 export default {
-  // Primary backgrounds
-  background: '#4a1942',        // Deep plum
-  backgroundDark: '#2d0f28',    // Darker plum (for text on gold)
+  // Backgrounds
+  background:     '#381729',
+  backgroundDark: '#331425',
 
-  // Accent colors
-  gold: '#d4af37',              // Art Deco gold
-  cream: '#f5f1e8',             // Cream text
+  // Gold scale
+  gold:       '#e8af48',
+  goldDim:    '#8a6428',
+  goldBright: '#feeaa5',
+  goldDark:   '#533517',
+  goldMid:    '#c49746',
 
-  // Card & UI elements
-  cardBackground: 'rgba(255, 255, 255, 0.05)',  // Subtle white overlay
-  border: 'rgba(212, 175, 55, 0.2)',            // Gold border with transparency
+  // Text
+  cream: '#f8efe2',
 
-  // Utility
+  // Glass cards
+  panel:    'rgba(52, 18, 42, 0.68)',
+  panelEdge: 'rgba(255, 255, 255, 0.07)',
+
+  // Misc
+  border:          'rgba(232, 175, 72, 0.15)',
+  cardBackground:  'rgba(255, 255, 255, 0.04)',
   white: '#ffffff',
   black: '#000000',
 };

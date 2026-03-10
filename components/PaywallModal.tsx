@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, Alert, ActivityIndicator } from 'react-native';
-import { X } from 'lucide-react-native';
 import Purchases from 'react-native-purchases';
 import Colors from '@/constants/colors';
+import { Fonts } from '@/constants/fonts';
 import { useGoldenDay } from '@/contexts/GoldenDayContext';
 import { ensureRevenueCatConfigured } from '@/lib/revenuecat';
 
@@ -66,7 +66,7 @@ export function PaywallModal({ visible, onClose }: PaywallModalProps) {
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          {/* Close Button */}
+          {/* Close Button — × character, bleeds outside card */}
           <Pressable
             style={styles.closeButton}
             onPress={onClose}
@@ -74,9 +74,7 @@ export function PaywallModal({ visible, onClose }: PaywallModalProps) {
             accessibilityRole="button"
             accessibilityLabel="Close"
           >
-            <View pointerEvents="none">
-              <X size={24} color={Colors.gold} />
-            </View>
+            <Text style={styles.closeX}>{'\u00d7'}</Text>
           </Pressable>
 
           {/* Top Divider */}
@@ -110,7 +108,7 @@ export function PaywallModal({ visible, onClose }: PaywallModalProps) {
             accessibilityLabel="Unlock all 364"
           >
             {loading ? (
-              <ActivityIndicator color={Colors.backgroundDark} />
+              <ActivityIndicator color='#1a0a05' />
             ) : (
               <Text style={styles.unlockButtonText}>Unlock All 364</Text>
             )}
@@ -135,26 +133,40 @@ export function PaywallModal({ visible, onClose }: PaywallModalProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(24, 10, 19, 0.82)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContainer: {
     backgroundColor: Colors.backgroundDark,
-    borderRadius: 20,
+    borderRadius: 28,
     padding: 30,
     width: '100%',
     maxWidth: 340,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
+    position: 'relative',
   },
   closeButton: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    padding: 14,
+    top: -14,
+    right: -14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(26, 8, 22, 0.93)',
+    borderWidth: 1,
+    borderColor: 'rgba(232, 175, 72, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
+  },
+  closeX: {
+    fontSize: 18,
+    color: Colors.gold,
+    opacity: 0.75,
+    lineHeight: 22,
   },
   divider: {
     flexDirection: 'row',
@@ -176,18 +188,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 32,
+    fontWeight: '300',
+    fontStyle: 'italic',
     color: Colors.gold,
     textAlign: 'center',
     letterSpacing: 1,
     marginBottom: 12,
+    fontFamily: Fonts.cormorantTitle,
   },
   body: {
     fontSize: 16,
     color: Colors.cream,
     textAlign: 'center',
     marginBottom: 8,
+    fontStyle: 'italic',
+    fontFamily: Fonts.cormorant,
   },
   subCopy: {
     fontSize: 14,
@@ -195,21 +211,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.7,
     lineHeight: 22,
+    fontStyle: 'italic',
+    fontFamily: Fonts.cormorant,
   },
   unlockButton: {
-    backgroundColor: Colors.gold,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-    alignSelf: 'center',
-    minWidth: 180,
+    backgroundColor: '#d4963e',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 236, 178, 0.26)',
+    borderRadius: 999,
+    minHeight: 52,
+    alignSelf: 'stretch',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   unlockButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: Colors.backgroundDark,
-    letterSpacing: 1,
+    color: '#1a0a05',
+    letterSpacing: 4,
+    fontFamily: Fonts.cinzelMedium,
   },
   restoreButton: {
     alignSelf: 'center',
@@ -217,8 +236,9 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   restoreButtonText: {
-    fontSize: 13,
+    fontSize: 11,
     color: Colors.cream,
-    opacity: 0.6,
+    opacity: 0.55,
+    fontFamily: Fonts.cinzel,
   },
 });

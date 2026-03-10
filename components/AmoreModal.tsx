@@ -1,5 +1,5 @@
 import Colors from '@/constants/colors';
-import { X } from 'lucide-react-native';
+import { Fonts } from '@/constants/fonts';
 import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type AmoreModalProps = {
@@ -17,7 +17,7 @@ export function AmoreModal({ visible, onClose }: AmoreModalProps) {
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          {/* Close Button */}
+          {/* Close Button — × character, bleeds outside card */}
           <Pressable
             style={styles.closeButton}
             onPress={onClose}
@@ -25,9 +25,7 @@ export function AmoreModal({ visible, onClose }: AmoreModalProps) {
             accessibilityRole="button"
             accessibilityLabel="Close"
           >
-            <View pointerEvents="none">
-              <X size={28} color={Colors.gold} />
-            </View>
+            <Text style={styles.closeX}>{'\u00d7'}</Text>
           </Pressable>
 
           {/* Wink GIF */}
@@ -78,30 +76,43 @@ export function AmoreModal({ visible, onClose }: AmoreModalProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(24, 10, 19, 0.84)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
   },
   modalContainer: {
     backgroundColor: Colors.backgroundDark,
-    borderRadius: 24,
+    borderRadius: 28,
     padding: 45,
     width: '100%',
     maxWidth: 380,
     marginTop: 28,
-    borderWidth: 2,
-    borderColor: Colors.gold,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
     position: 'relative',
     alignItems: 'center',
     overflow: 'hidden',
   },
   closeButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    padding: 12,
+    top: -14,
+    right: -14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(26, 8, 22, 0.93)',
+    borderWidth: 1,
+    borderColor: 'rgba(232, 175, 72, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
+  },
+  closeX: {
+    fontSize: 18,
+    color: Colors.gold,
+    opacity: 0.75,
+    lineHeight: 22,
   },
   winkGif: {
     width: '100%',
@@ -136,6 +147,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     letterSpacing: 2,
     textAlign: 'center',
+    fontFamily: Fonts.cormorantTitle,
   },
   subtitle: {
     fontSize: 21,
@@ -144,14 +156,16 @@ const styles = StyleSheet.create({
     opacity: 1,
     marginTop: 8,
     fontStyle: 'italic',
-    fontWeight: '700',
+    fontFamily: Fonts.cormorant,
   },
   doneButton: {
-    backgroundColor: Colors.gold,
+    backgroundColor: '#d4963e',
     paddingVertical: 16,
     paddingHorizontal: 50,
     borderRadius: 30,
     marginTop: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 236, 178, 0.26)',
     shadowColor: Colors.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -160,8 +174,8 @@ const styles = StyleSheet.create({
   },
   doneButtonText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: Colors.backgroundDark,
-    letterSpacing: 2,
+    color: '#1a0a05',
+    letterSpacing: 4,
+    fontFamily: Fonts.cinzelMedium,
   },
 });

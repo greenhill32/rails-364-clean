@@ -9,40 +9,35 @@ type GoldenDay = { month: number; date: number } | null;
 type GoldenDayContextType = {
   goldenDay: GoldenDay;
   setGoldenDay: (month: number, date: number) => void;
-  quotesUsed: number;
   visitedDayKeys: string[];
   markDayVisited: (dayKey: string) => void;
   isPurchased: boolean;
   setPurchased: (value: boolean) => void;
-  incrementQuotesUsed: () => void;
+  clearLocalCache: () => Promise<void>;
 };
 
 const GoldenDayContext = createContext<GoldenDayContextType>({
   goldenDay: null,
   setGoldenDay: () => {},
-  quotesUsed: 0,
   visitedDayKeys: [],
   markDayVisited: () => {},
   isPurchased: false,
   setPurchased: () => {},
-  incrementQuotesUsed: () => {},
+  clearLocalCache: async () => {},
 });
 
 export function GoldenDayProvider({ children }: { children: ReactNode }) {
   const [goldenDay, setGoldenDayState] = useState<GoldenDay>(null);
-  const [quotesUsed, setQuotesUsed] = useState(0);
   const [visitedDayKeys, setVisitedDayKeys] = useState<string[]>([]);
   const [isPurchased, setIsPurchased] = useState(false);
 
   useEffect(() => {
     async function loadPersisted() {
-      const [storedQuotes, storedPurchased, storedGoldenDay, storedVisitedDays] = await Promise.all([
-        AsyncStorage.getItem('quotes_used'),
+      const [storedPurchased, storedGoldenDay, storedVisitedDays] = await Promise.all([
         AsyncStorage.getItem('is_purchased'),
         AsyncStorage.getItem('golden_day'),
         AsyncStorage.getItem('visited_day_keys'),
       ]);
-      if (storedQuotes !== null) setQuotesUsed(parseInt(storedQuotes, 10));
       if (storedPurchased === 'true') setIsPurchased(true);
       if (storedGoldenDay !== null) {
         try {
@@ -94,14 +89,21 @@ export function GoldenDayProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const incrementQuotesUsed = async () => {
-    const next = quotesUsed + 1;
-    setQuotesUsed(next);
-    await AsyncStorage.setItem('quotes_used', String(next));
+  const clearLocalCache = async () => {
+    setGoldenDayState(null);
+    setVisitedDayKeys([]);
+    setIsPurchased(false);
+
+    await AsyncStorage.multiRemove([
+      'quotes_used',
+      'is_purchased',
+      'golden_day',
+      'visited_day_keys',
+    ]);
   };
 
   return (
-    <GoldenDayContext.Provider value={{ goldenDay, setGoldenDay, quotesUsed, visitedDayKeys, markDayVisited, isPurchased, setPurchased, incrementQuotesUsed }}>
+    <GoldenDayContext.Provider value={{ goldenDay, setGoldenDay, visitedDayKeys, markDayVisited, isPurchased, setPurchased, clearLocalCache }}>
       {children}
     </GoldenDayContext.Provider>
   );

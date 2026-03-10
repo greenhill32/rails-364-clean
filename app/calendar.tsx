@@ -12,7 +12,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
 import Colors from '@/constants/colors';
-import { Quote, getRandomQuote } from '@/constants/quotes';
+import { Fonts } from '@/constants/fonts';
+import { Quote, getRandomQuoteForDayCount } from '@/constants/quotes';
 import { useGoldenDay } from '@/contexts/GoldenDayContext';
 import { QuoteModal } from '@/components/QuoteModal';
 import { AmoreModal } from '@/components/AmoreModal';
@@ -37,7 +38,7 @@ function getFirstDayOfMonth(month: number, year: number): number {
 }
 
 export default function CalendarScreen() {
-  const { goldenDay, quotesUsed, visitedDayKeys, markDayVisited, incrementQuotesUsed } = useGoldenDay();
+  const { goldenDay, visitedDayKeys, markDayVisited } = useGoldenDay();
   const goldenDayMonth = goldenDay?.month ?? -1;
   const goldenDayDate = goldenDay?.date ?? -1;
 
@@ -67,14 +68,15 @@ export default function CalendarScreen() {
 
   const handleDayPress = (day: number) => {
     const dayKey = `${currentYear}-${currentMonth}-${day}`;
+    const isVisitedDay = visitedDayKeys.includes(dayKey);
+    const nextVisitedCount = isVisitedDay ? visitedDayKeys.length : visitedDayKeys.length + 1;
     markDayVisited(dayKey);
 
     const isGoldenDay = currentMonth === goldenDayMonth && day === goldenDayDate;
     if (isGoldenDay) {
       setShowAmoreModal(true);
     } else {
-      incrementQuotesUsed();
-      setCurrentQuote(getRandomQuote());
+      setCurrentQuote(getRandomQuoteForDayCount(nextVisitedCount));
       setShowQuoteModal(true);
     }
   };
@@ -109,15 +111,17 @@ export default function CalendarScreen() {
           onPress={() => handleDayPress(day)}
           activeOpacity={0.7}
         >
-          <Text style={[
-            styles.dayText,
-            isToday && !isGoldenDay && styles.todayText,
-            isGoldenDay && styles.goldDayText,
-            isVisitedDay && !isGoldenDay && styles.visitedDayText,
-          ]}>
-            {day}
-          </Text>
-          {isGoldenDay && <View style={styles.goldIndicator} />}
+          {isVisitedDay && !isGoldenDay ? (
+            <View style={styles.tappedCoin}>
+              <Text style={[styles.dayText, styles.tappedDayText]}>{day}</Text>
+            </View>
+          ) : (
+            <Text style={[
+              styles.dayText,
+              isToday && !isGoldenDay && styles.todayText,
+              isGoldenDay && styles.goldDayText,
+            ]}>{day}</Text>
+          )}
         </TouchableOpacity>
       );
     }
@@ -147,7 +151,7 @@ export default function CalendarScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>364</Text>
           <Text style={styles.headerSubtitle}>WAYS TO SAY NO</Text>
-          <Text style={styles.counter}>{quotesUsed} / 364</Text>
+          <Text style={styles.counter}>{visitedDayKeys.length} / 364</Text>
         </View>
 
         {/* Month Navigation */}
@@ -235,7 +239,7 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     fontStyle: 'italic',
     letterSpacing: -1,
-    fontFamily: 'Didot',
+    fontFamily: Fonts.cormorantTitle,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -243,7 +247,7 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     letterSpacing: 4,
     marginTop: -5,
-    fontFamily: 'Didot',
+    fontFamily: Fonts.cinzel,
   },
   counter: {
     fontSize: 12,
@@ -252,6 +256,7 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     opacity: 0.6,
     marginTop: 12,
+    fontFamily: Fonts.cinzel,
   },
   monthHeader: {
     flexDirection: 'row',
@@ -273,6 +278,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.cream,
     letterSpacing: 0.5,
+    fontFamily: Fonts.cinzel,
   },
   weekdaysRow: {
     flexDirection: 'row',
@@ -288,6 +294,7 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     fontWeight: '500',
     opacity: 0.7,
+    fontFamily: Fonts.cinzel,
   },
   calendarScroll: {
     flex: 1,
@@ -303,7 +310,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   todayCell: {
-    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    borderWidth: 1,
+    borderColor: Colors.gold,
     borderRadius: DAY_SIZE / 2,
   },
   goldDayCell: {
@@ -322,18 +330,19 @@ const styles = StyleSheet.create({
     color: Colors.backgroundDark,
     fontWeight: '700',
   },
-  visitedDayText: {
-    color: Colors.gold,
-    textDecorationLine: 'line-through',
-    textDecorationColor: Colors.gold,
+  tappedCoin: {
+    width: DAY_SIZE * 0.86,
+    height: DAY_SIZE * 0.86,
+    borderRadius: (DAY_SIZE * 0.86) / 2,
+    backgroundColor: 'rgba(232, 175, 72, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  goldIndicator: {
-    position: 'absolute',
-    bottom: 6,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.backgroundDark,
+  tappedDayText: {
+    color: '#2d0f28',
+    fontSize: 13,
+    fontWeight: '500',
+    textDecorationLine: 'none' as const,
   },
   resetButton: {
     flexDirection: 'row',

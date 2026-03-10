@@ -630,3 +630,96 @@ NEXT STEPS (READY FOR TESTING)
 4. Confirm spinning animations are smooth (ring on icons, selected day, diamond)
 5. Test tap count + paywall re-enable after Apple approval
 6. Consider LinearGradient import if liquid gold buttons need more polish
+
+
+================================================================================
+SESSION - March 10, 2026 — Quote Flow + Palette + Test Utilities
+================================================================================
+
+WHAT WE DID
+-----------
+
+1. Rebalanced app background color
+   - Tested multiple plum midpoint shades on calendar screen
+   - Selected the lightest approved swatch and applied it app-wide
+   - Updated shared tokens:
+     - background: #381729
+     - backgroundDark: #331425
+   - Replaced remaining hardcoded near-black backgrounds in:
+     - app/about.tsx
+     - app/pick-golden-day.tsx
+     - app/golden-day-splash.tsx
+     - components/QuoteModal.tsx
+
+2. Fixed calendar counter behavior
+   - Header counter now reflects clicked/visited day count, not old quotesUsed state
+   - Counter source is visitedDayKeys.length / 364
+   - Re-tapping an already visited day does not increase the count
+   - File: app/calendar.tsx
+
+3. Updated quote selection progression
+   - Added day-count-aware quote selector in constants/quotes.ts
+   - First 60 clicked days now pull only from rating 9 + rating 10 pools
+   - After day 60, quote selection falls back to the full quote collection
+   - Confirmed pool size is sufficient:
+     - rating9 = 52
+     - rating10 = 10
+     - total = 62
+
+4. Added local cache reset for testing
+   - Settings modal now includes "Clear Local Cache"
+   - Clears saved golden day, visited days, purchase flag, and legacy local quote usage key
+   - Uses confirmation alert before destructive reset
+   - Files:
+     - components/SettingsModal.tsx
+     - contexts/GoldenDayContext.tsx
+
+5. Cleaned up stale state
+   - Removed quotesUsed and incrementQuotesUsed from GoldenDayContext
+   - App now uses visitedDayKeys as the single progression source for calendar usage
+   - Left legacy quotes_used storage key in clearLocalCache for backwards cleanup
+
+6. Improved splash layout resilience
+   - Replaced brittle fixed marginTop positioning with flex-based hero centering
+   - Keeps "Your Golden Day" block more stable across device sizes
+   - File: app/golden-day-splash.tsx
+
+7. Small UI cleanup
+   - Quote modal dismiss now shows literal "X"
+   - Removed redundant gold indicator dot from golden-day cell
+   - Softened modal overlays to match plum palette:
+     - SettingsModal
+     - PaywallModal
+     - AmoreModal
+   - Settings version now reads from Expo config instead of hardcoded string
+
+FILES CHANGED
+-------------
+- constants/colors.ts
+- constants/quotes.ts
+- app/about.tsx
+- app/pick-golden-day.tsx
+- app/golden-day-splash.tsx
+- app/calendar.tsx
+- components/QuoteModal.tsx
+- components/SettingsModal.tsx
+- components/PaywallModal.tsx
+- components/AmoreModal.tsx
+- contexts/GoldenDayContext.tsx
+
+NOTES
+-----
+- Temporary calendar background picker was added for visual selection, then removed after choosing final color
+- Current quote progression rule is:
+  - Day 1-60: rating9 + rating10 only
+  - Day 61+: full quote pool
+
+NEXT CHECKS
+-----------
+1. Confirm splash hero sits correctly on smaller and taller iPhones
+2. Verify first 60 unique clicked days only show rating 9/10 quotes
+3. Test Clear Local Cache resets:
+   - golden day
+   - visited day count
+   - purchase state
+4. Check modal overlay tone against updated plum background on-device

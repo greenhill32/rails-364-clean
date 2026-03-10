@@ -408,10 +408,29 @@ export const QUOTES_364: Record<string, Quote[]> = {
   ]
 };
 
+function getRandomFromPool(pool: Quote[]): Quote {
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // Get a random quote from the full collection
 export function getRandomQuote(): Quote {
   const all = getAllQuotes();
-  return all[Math.floor(Math.random() * all.length)];
+  return getRandomFromPool(all);
+}
+
+export function getRandomQuoteForDayCount(dayCount: number): Quote {
+  if (dayCount <= 60) {
+    const highRatingPool = [
+      ...(QUOTES_364.rating9 || []) as Quote[],
+      ...(QUOTES_364.rating10 || []) as Quote[],
+    ];
+
+    if (highRatingPool.length > 0) {
+      return getRandomFromPool(highRatingPool);
+    }
+  }
+
+  return getRandomQuote();
 }
 
 // Get all quotes as flat array with IDs
