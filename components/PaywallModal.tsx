@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, Alert, ActivityIndicator } from 'react-native';
-import Purchases from 'react-native-purchases';
+// import Purchases from 'react-native-purchases'; // RC disabled until App Store submission
 import Colors from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
 import { useGoldenDay } from '@/contexts/GoldenDayContext';
-import { ensureRevenueCatConfigured } from '@/lib/revenuecat';
+// import { ensureRevenueCatConfigured } from '@/lib/revenuecat'; // RC disabled until App Store submission
 
 type PaywallModalProps = {
   visible: boolean;
@@ -16,45 +16,49 @@ export function PaywallModal({ visible, onClose }: PaywallModalProps) {
   const [loading, setLoading] = useState(false);
 
   const handlePurchase = async () => {
-    setLoading(true);
-    try {
-      await ensureRevenueCatConfigured();
-      const offerings = await Purchases.getOfferings();
-      const lifetime = offerings.current?.lifetime;
-      if (!lifetime) {
-        Alert.alert('Error', 'No offering found. Please try again later.');
-        return;
-      }
-      const { customerInfo } = await Purchases.purchasePackage(lifetime);
-      if (customerInfo.entitlements.active['pro']) {
-        setPurchased(true);
-        onClose();
-      }
-    } catch (e: any) {
-      if (!e.userCancelled) {
-        Alert.alert('Purchase Error', e.message || 'Something went wrong.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    // RC disabled until App Store submission
+    // setLoading(true);
+    // try {
+    //   await ensureRevenueCatConfigured();
+    //   const offerings = await Purchases.getOfferings();
+    //   const lifetime = offerings.current?.lifetime;
+    //   if (!lifetime) {
+    //     Alert.alert('Error', 'No offering found. Please try again later.');
+    //     return;
+    //   }
+    //   const { customerInfo } = await Purchases.purchasePackage(lifetime);
+    //   if (customerInfo.entitlements.active['pro']) {
+    //     setPurchased(true);
+    //     onClose();
+    //   }
+    // } catch (e: any) {
+    //   if (!e.userCancelled) {
+    //     Alert.alert('Purchase Error', e.message || 'Something went wrong.');
+    //   }
+    // } finally {
+    //   setLoading(false);
+    // }
+    Alert.alert('Coming Soon', 'In-app purchases will be available when the app launches on the App Store.');
   };
 
   const handleRestore = async () => {
-    setLoading(true);
-    try {
-      await ensureRevenueCatConfigured();
-      const customerInfo = await Purchases.restorePurchases();
-      if (customerInfo.entitlements.active['pro']) {
-        setPurchased(true);
-        onClose();
-      } else {
-        Alert.alert('No Purchases Found', 'We could not find any previous purchases to restore.');
-      }
-    } catch (e: any) {
-      Alert.alert('Restore Error', e.message || 'Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
+    // RC disabled until App Store submission
+    // setLoading(true);
+    // try {
+    //   await ensureRevenueCatConfigured();
+    //   const customerInfo = await Purchases.restorePurchases();
+    //   if (customerInfo.entitlements.active['pro']) {
+    //     setPurchased(true);
+    //     onClose();
+    //   } else {
+    //     Alert.alert('No Purchases Found', 'We could not find any previous purchases to restore.');
+    //   }
+    // } catch (e: any) {
+    //   Alert.alert('Restore Error', e.message || 'Something went wrong.');
+    // } finally {
+    //   setLoading(false);
+    // }
+    Alert.alert('Coming Soon', 'In-app purchases will be available when the app launches on the App Store.');
   };
 
   return (

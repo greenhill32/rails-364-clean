@@ -10,6 +10,9 @@ EXPORT_PLIST="ExportOptions.plist"
 TEAM_ID="ZARBU8R8ML"
 APPLE_ID="greenhill2022@outlook.com"
 
+# Allow passing password as argument: ./build-ios.sh <password>
+APP_PASSWORD="${1:-}"
+
 # Get current build number
 CURRENT_BUILD=$(python3 -c "import json; print(json.load(open('app.json'))['expo']['ios']['buildNumber'])")
 VERSION=$(python3 -c "import json; print(json.load(open('app.json'))['expo']['version'])")
@@ -48,6 +51,29 @@ fi
 echo "Installing pods..."
 cd ios && pod install --repo-update && cd ..
 
+# Fix header search paths for Xcode 26 compatibility
+# React_RCTAppDelegate umbrella header is inside React.xcframework but not in regular header search paths
+echo "Patching xcconfigs for Xcode 26 compatibility..."
+python3 - << 'PYEOF'
+import glob, re
+
+new_path = '"$(PODS_XCFRAMEWORKS_BUILD_DIR)/React-Core-prebuilt/React.framework/Headers"'
+patched = 0
+for path in glob.glob('ios/Pods/Target Support Files/**/*.xcconfig', recursive=True):
+    with open(path) as f:
+        content = f.read()
+    if 'HEADER_SEARCH_PATHS' in content and new_path not in content:
+        content = re.sub(
+            r'(HEADER_SEARCH_PATHS = .*)',
+            lambda m: m.group(1) + ' ' + new_path,
+            content
+        )
+        with open(path, 'w') as f:
+            f.write(content)
+        patched += 1
+print(f"  Patched {patched} xcconfig files")
+PYEOF
+
 # Archive
 echo "Archiving..."
 xcodebuild -workspace "$WORKSPACE" \
@@ -75,8 +101,10 @@ echo "Export succeeded"
 
 # Upload
 echo "Uploading to App Store Connect..."
-read -sp "Enter your app-specific password: " APP_PASSWORD
-echo ""
+if [ -z "$APP_PASSWORD" ]; then
+  read -sp "Enter your app-specific password: " APP_PASSWORD
+  echo ""
+fi
 xcrun altool --upload-app \
   -f "$EXPORT_PATH/364WaystoSayNo.ipa" \
   -t ios \

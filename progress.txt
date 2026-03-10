@@ -1,725 +1,122 @@
-PROGRESS LOG - February 14, 2026 + February 16, 2026
+364 Ways to Say No — Agent Review Concerns
+Date: 2026-03-10
+============================================
 
-================================================================================
-WHAT WE DID TODAY
-================================================================================
 
-1. Added routing for pick-golden-day.tsx screen
-   - File already existed: app/pick-golden-day.tsx
-   - Confirmed Expo Router file-based routing auto-generates route from filename
-   - No additional routing config needed; route `/pick-golden-day` works automatically
+SECURITY ENGINEER FINDINGS
+===========================
 
-2. Fixed about.tsx screen flow
-   - Added auto-progression: navigates to `/pick-golden-day` after 3 seconds
-   - Kept "Begin" button so users can skip ahead manually
-   - Pattern: useEffect with setTimeout → router.replace()
+CAUTION — Hardcoded RevenueCat API key in git
+  File: lib/revenuecat.ts line 5
+  Key: appl_ieMTFqKmtaifbVskZxnUNhjZXJP
+  Action: Rotate key in RevenueCat dashboard. Move to EAS Secret before re-enabling RC.
 
-3. Created CLAUDE.md project documentation
-   - Comprehensive guide for future Claude Code instances
-   - Covers: development commands, routing architecture, directory structure
-   - Documents: tech stack, common patterns, styling conventions, path aliases
-   - Includes current screen navigation flow and onboarding pattern
+CAUTION — Apple ID + Team ID committed to git
+  File: build-ios.sh lines 11-12, ExportOptions.plist
+  Values: TEAM_ID=ZARBU8R8ML, APPLE_ID=greenhill2022@outlook.com
+  Action: Add build-ios.sh and ExportOptions.plist to .gitignore. Move values to env vars.
 
+CAUTION — is_purchased stored in unencrypted AsyncStorage
+  File: contexts/GoldenDayContext.tsx
+  Risk: Trivially bypassable on jailbroken devices.
+  Action: When RC re-enabled, ensure server-side entitlement check is authoritative.
+          Consider expo-secure-store (Keychain) for purchase flag.
 
-================================================================================
-WHAT WENT RIGHT
-================================================================================
+SAFE — clearLocalCache exposed in production Settings UI
+  File: components/SettingsModal.tsx
+  Note: Consider removing or renaming before final release.
 
-✓ Expo Router file-based routing eliminated need for manual route registration
-  - File structure automatically becomes API surface
-  - Clean, intuitive system for adding new screens
+SAFE — Linking.openURL without error handling
+  File: components/SettingsModal.tsx lines 16-22
+  Note: Add try/catch. Azure Blob domain looks unprofessional — consider custom domain.
 
-✓ Quick fix for about.tsx using proven pattern
-  - Reused auto-progression pattern from index.tsx
-  - Both button and auto-navigation provide good UX options
+SAFE — Zero PII collected, no analytics, no ad SDKs, clean privacy posture.
+SAFE — ITSAppUsesNonExemptEncryption: false correctly declared.
+SAFE — Share card captures only ViewShot component, not full screen.
 
-✓ CLAUDE.md creation captured project knowledge efficiently
-  - File-based routing, screen flow, styling conventions now documented
-  - Tech stack details preserved for next session
-  - Path aliases, build config, common patterns all noted
 
-✓ Project uses TypeScript with strict mode - type safety enabled
+SENIOR DEVELOPER FINDINGS
+==========================
 
+BLOCK (CLEARED) — Privacy/Terms URLs verified live and publicly accessible. ✓
 
-================================================================================
-WHAT WENT WRONG
-================================================================================
+CAUTION — PaywallModal never triggered anywhere in the app
+  The app is currently fully free for all users. No gating logic exists.
+  Verify this is intentional for launch. PaywallModal copy says "3 free excuses used"
+  which implies gating that isn't wired up.
 
-✗ Initial confusion about routing setup
-  - I didn't immediately recognize Expo Router handles routes via file structure
-  - Expected manual route config when none was needed
-  - Required clarification from user
+CAUTION — react-native-purchases still live-imported in lib/revenuecat.ts
+  The import is not commented out. SDK is bundled into binary even though RC is disabled.
+  Action: Comment out the import in lib/revenuecat.ts.
 
-✗ Incomplete understanding of app flow on first pass
-  - Didn't check about.tsx until asked to fix the "second screen stops" issue
-  - Should have mapped full screen navigation flow earlier
+CAUTION — getRandomFromPool() can return undefined for empty pool
+  File: constants/quotes.ts (or similar)
+  QuoteModal has !quote guard so no crash, but user sees a tap that does nothing.
 
+CAUTION — AsyncStorage write inside setState updater (fire-and-forget)
+  File: contexts/GoldenDayContext.tsx markDayVisited()
+  React anti-pattern. Write failures are silently swallowed.
 
-================================================================================
-LESSONS LEARNED
-================================================================================
+CAUTION — setGoldenDay / setPurchased typed as void but implemented as async
+  Silent data loss risk if AsyncStorage write fails.
 
-1. Expo Router is file-based by default
-   - Files in app/ directory automatically become routes
-   - Filename → URL path (pick-golden-day.tsx → /pick-golden-day)
-   - No manual routing setup needed; conventions over configuration
+CAUTION — Linking.openURL no try/catch in SettingsModal
+  Action: Wrap in try/catch, show fallback Alert on failure.
 
-2. Ask clarifying questions upfront
-   - "Either add button or auto progress" was ambiguous
-   - Could have asked user preference before implementing
-   - Instead, added auto-progress which complemented existing button
+CAUTION — Hard-coded paddingTop instead of safe-area insets
+  Could clip settings button or header on iPhone 14 Pro / 15 / 16 with Dynamic Island.
+  Action: Replace with useSafeAreaInsets() at minimum on calendar screen.
 
-3. Map screen flows early when working with navigation
-   - Index → About → PickGoldenDay → Calendar (not yet created)
-   - Understanding the full flow prevents duplicate work
+CAUTION — as any cast on ViewShot ref in QuoteModal
+  File: components/QuoteModal.tsx
+  Low risk in practice due to null guard, but bypasses TypeScript.
 
-4. Auto-progression pattern is useful for onboarding
-   - User can wait or click to skip
-   - Pattern: useEffect + setTimeout + router.replace()
-   - Improves UX vs. forcing user to click
+CAUTION — Version mismatch: package.json 1.0.0 vs app.json 2.0.0
+  Cosmetic only, not an App Store rejection risk.
 
-5. Document architecture decisions immediately
-   - CLAUDE.md captures routing approach, styling, tech stack
-   - Prevents future sessions from re-learning project structure
-   - Focus on "why" and "where things go" not "how to use React"
+SAFE — useWindowDimensions imported but unused in QuoteModal.tsx
+  Action: Remove dead import before submission to pass lint.
 
-6. TypeScript with strict mode catches issues early
-   - Project already has strict: true
-   - Leverage this for catching bugs in new code
+SAFE — Dynamic require('react-native') inside handleShare async function
+  Works correctly, just unconventional. Move Platform to top-level import.
 
+SAFE — console.error('Share failed') left in QuoteModal
+  Hermes strips console calls in release builds. No user feedback on share failure though.
 
-================================================================================
-NEXT STEPS (RECOMMENDATIONS)
-================================================================================
+SAFE — Calendar accessible without golden day set — graceful degradation, acceptable.
+SAFE — wink.gif bundled asset, no load failure risk.
 
-- we are building minimalistic, no friction submission just to get working testflight submission
-- all previous attempts have failed. we are building bare bones.
-- to see where error is. I have submitted. using eas build -p ios --auto-submit
-- now waiting
 
-Fonts not the same.
-on calendar screen th highlighted gold day the gold pill is not centered on day
-there is no settings cog and settings modal
+WHIMSY INJECTOR SUGGESTIONS (optional enhancements)
+====================================================
 
+QUICK (afternoon):
+  - Replace × dismiss button with † dagger or ◆ diamond (QuoteModal)
+  - Ghost watermark: large rotated diamond at 4% gold opacity behind quote (QuoteModal)
+  - Month commentary pill: absurdist one-liner per month on pick screen
 
-================================================================================
-SESSION - February 16, 2026
-================================================================================
-
-WHAT WE DID
------------
-
-1. Added full quotes to constants/quotes.ts
-   - All 364 quotes now in the app
-
-2. Fixed lint warning in app/index.tsx
-   - react-hooks/exhaustive-deps: added `router` to useEffect dependency array
-   - Lint now passes clean (0 errors, 0 warnings)
-
-3. Committed full app implementation
-   - 25 files changed, 2189 insertions
-   - New screens: index, about, calendar, explore, golden-day-splash,
-     pick-golden-day, tabs-layout
-   - New components: AmoreModal, QuoteModal, SettingsModal
-   - New constants: colors, quotes
-   - New contexts: GoldenDayContext
-   - Updated app.json: app name "364 Ways to Say No", v2.0.0, EAS config
-   - Added eas.json, datetimepicker + lucide-react-native deps
-
-4. Set up GitHub remote and pushed
-   - Installed gh CLI via Homebrew
-   - Added remote: https://github.com/greenhill32/rails-364-clean
-   - Resolved conflict with GitHub auto-generated README, pushed successfully
-
-OUTSTANDING ISSUES (carried forward)
---------------------------------------
-- Fonts not the same across screens Garamond & Cormorant
-- Counter (X/364) is on QuoteModal — may also want it on calendar screen below "364" header
-
-
-================================================================================
-SESSION - February 16, 2026 (evening)
-================================================================================
-
-WHAT WE DID
------------
-
-1. Implemented quote counter + paywall gate
-   - Installed @react-native-async-storage/async-storage
-   - Added quotesUsed, isPurchased, incrementQuotesUsed to GoldenDayContext
-   - Both values persisted to AsyncStorage (quotes_used, is_purchased)
-   - Added "X / 364" counter to QuoteModal (below bottom divider, above Share)
-   - Created PaywallModal component (matches existing modal style)
-   - Gated calendar taps: first 3 free → QuoteModal, 4th+ → PaywallModal
-   - Counter persists across app restarts
-
-2. Bumped iOS buildNumber from "1" to "2" in app.json
-
-3. Attempted EAS build for App Store submission
-   - Hit free plan monthly iOS build limit (resets Mar 1, 2026)
-   - Tried local Xcode build as alternative
-   - Xcode took too long to index; deferred to next session
-
-================================================================================
-SESSION - February 17, 2026
-================================================================================
-
-WHAT WE DID
------------
-
-1. Switched from EAS to CLI-based iOS build pipeline
-   - Avoided Xcode GUI entirely using xcodebuild commands
-   - Much more predictable and repeatable than EAS
-
-2. Set up iOS signing
-   - Generated CSR and private key for distribution certificate
-   - Downloaded distribution certificate from Apple Developer account
-   - Imported both key and cert to Keychain
-   - Verified signing identity: Apple Distribution: lee manley (ZARBU8R8ML)
-
-3. Built, archived, exported, and uploaded to App Store Connect
-   - Bumped buildNumber from 2 → 3 in app.json
-   - Ran xcodebuild archive with Release config
-   - Exported signed IPA using ExportOptions.plist
-   - Uploaded IPA to App Store Connect using xcrun altool
-   - Build 3 successfully submitted (Delivery UUID: 061413ff-425c-4df7-b909-11e86961e5e8)
-
-4. Created reusable build-ios.sh script
-   - Single command builds, exports, and uploads
-   - Prompts for new build number (auto-increments if not specified)
-   - Automatically updates app.json with new build number
-   - Prompts for app-specific password at upload stage
-   - Removes need to ever use Xcode GUI again
-
-5. Updated .gitignore
-   - Added build/ (archives and exports)
-   - Added *.cer, *.csr (signing files)
-
-RESULT
-------
-✓ App Build 3 (v2.0.0) submitted to App Store Connect
-✓ No crashes from TestFlight
-✓ Complete CLI workflow replaces EAS and Xcode GUI
-✓ Ready for production
-
-NEXT TIME
----------
-- Run: ./build-ios.sh
-- Enter new build number when prompted
-- Enter app-specific password
-- Done
-
-
-================================================================================
-SESSION - February 19, 2026
-================================================================================
-
-WHAT WE DID
------------
-
-1. Implemented RevenueCat IAP integration (ugly-first, end-to-end)
-   - Installed react-native-purchases SDK
-   - Added react-native-purchases to app.json plugins (auto-adds StoreKit entitlement)
-   - Initialize RevenueCat in app/_layout.tsx with Purchases.configure() on mount
-   - Skipped web platform
-
-2. Enhanced GoldenDayContext
-   - Exposed setPurchased() in context type and provider value
-   - Added RevenueCat check on mount: calls Purchases.getCustomerInfo() after loading
-     AsyncStorage cache, checks 'premium' entitlement, falls back silently if offline
-   - Persisted goldenDay to AsyncStorage (key: 'golden_day')
-   - Fixed bug: goldenDay now survives app restart (was lost before)
-
-3. Wired purchase flow in PaywallModal
-   - "Unlock All 364" button now triggers real purchase flow
-   - Flow: Purchases.getOfferings() → get lifetime package → purchasePackage()
-   - Checks 'premium' entitlement → setPurchased(true) → closes modal
-   - Ignores userCancelled errors, shows Alert for real errors
-   - Shows ActivityIndicator while loading, disables buttons
-   - Added "Restore Purchases" link below unlock button
-
-4. Added Restore Purchases to SettingsModal
-   - New menu item between Terms of Service and version
-   - Uses same restore logic as PaywallModal
-   - Shows spinner while restoring
-   - Apple requires restore to be accessible outside paywall
-
-SETUP CHECKLIST (STILL NEEDED)
-------------------------------
-✓ Step 1: Created Non-Consumable IAP in App Store Connect
-  - Product ID: com.greenhill32.364waystosayno.lifetime
-
-⏳ Step 2: Set up RevenueCat (NEXT)
-  - Create project at app.revenuecat.com
-  - Add Apple App Store app with bundle ID com.greenhill32.364waystosayno
-  - Paste App-Specific Shared Secret from App Store Connect
-  - Create entitlement: premium
-  - Create product: com.greenhill32.364waystosayno.lifetime
-  - Attach to premium entitlement
-  - Create default offering with Lifetime package
-  - Copy Apple API Key (appl_...)
-
-BEFORE BUILDING FOR TESTFLIGHT
-------------------------------
-- Replace appl_XXX in app/_layout.tsx:7 with actual RevenueCat Apple API key
-- Run: npx expo prebuild --platform ios --no-install
-- Verify .entitlements file no longer empty
-- Run: ./build-ios.sh
-- Test on device with sandbox test account
-
-TESTING PLAN
-------------
-1. Tap 3 days → QuoteModal appears
-2. Tap 4th day → PaywallModal appears
-3. Tap "Unlock All 364" → purchase flow
-4. Complete purchase with sandbox account
-5. Confirm unlock (QuoteModal shows 4/364, no paywall)
-6. Kill app → reopen (should still be unlocked)
-7. Delete & reinstall from TestFlight → Restore Purchases → confirm unlock
-8. Airplane mode: turn off wifi → open app → show cached state
-   → turn on wifi → state syncs with RevenueCat
-
-CODE FILES CHANGED (0 new files)
---------------------------------
-- app.json (added react-native-purchases plugin)
-- app/_layout.tsx (RevenueCat initialization)
-- contexts/GoldenDayContext.tsx (setPurchased, RevenueCat check, goldenDay persist)
-- components/PaywallModal.tsx (purchase flow, restore, loading state)
-- components/SettingsModal.tsx (restore purchases menu item)
-- package.json (react-native-purchases added by npm install)
-
-WHAT WENT RIGHT
----------------
-✓ Ugly-first approach: 0 design polish, just wiring up monetization
-✓ End-to-end: from getOfferings() through purchase to isPurchased check
-✓ Offline-friendly: RevenueCat check falls back to cached AsyncStorage silently
-✓ Apple compliance: Restore Purchases accessible outside paywall
-✓ Bug fix included: goldenDay now persists across restart (was lost before)
-✓ No new files created: only modified 5 existing files
-
-WHAT STILL NEEDS WORK
----------------------
-- Replace placeholder API key before building
-- Verify .entitlements file after prebuild
-- Create Sandbox Test Account in App Store Connect (User & Access > Sandbox)
-- Test full purchase flow on TestFlight with sandbox account
-
-TODO (READY FOR NEXT SESSION)
-------------------------------------------
-1. Complete RevenueCat setup (dashboard config)
-2. Replace API key in app/_layout.tsx:7
-3. Run prebuild to generate entitlements
-4. Build & upload to TestFlight
-5. Test purchase flow with sandbox account
-
-
-================================================================================
-SESSION - February 19, 2026 (evening)
-================================================================================
-
-WHAT WE DID
------------
-
-1. Fixed two RevenueCat bugs blocking launch and purchase unlock
-
-BUG 1 — App crash on launch (FIXED)
-   - Root cause: react-native-purchases is NOT auto-linked by Expo
-   - expo prebuild --no-install regenerates Podfile, wiping any manual pod entries
-   - pod install was never run, so RNPurchases native SDK was never compiled in
-   - Fix: updated build-ios.sh to inject `pod 'RNPurchases'` after prebuild,
-     then run `pod install --repo-update` before archiving
-
-BUG 2 — Purchase unlock silently failing (FIXED)
-   - Root cause: code checked entitlements.active['premium'] but RevenueCat
-     entitlement identifier is 'pro'
-   - Purchase would succeed but isPurchased would never be set to true
-   - Fix: changed all 4 occurrences of 'premium' → 'pro' across:
-     · contexts/GoldenDayContext.tsx
-     · components/PaywallModal.tsx (handlePurchase + handleRestore)
-     · components/SettingsModal.tsx (handleRestore)
-
-2. Also fixed pod repo staleness error during build
-   - `pod install` failed: couldn't find PurchasesHybridCommon (= 17.40.0)
-   - Fix: changed to `pod install --repo-update` in build-ios.sh
-
-FILES CHANGED
--------------
-- build-ios.sh (pod inject + pod install --repo-update after prebuild)
-- contexts/GoldenDayContext.tsx ('premium' → 'pro')
-- components/PaywallModal.tsx ('premium' → 'pro', x2)
-- components/SettingsModal.tsx ('premium' → 'pro')
-
-BUILD STATUS
-------------
-- Build 8 in progress (running ./build-ios.sh as of this writing)
-- Expected: app launches, purchase flow works end-to-end
-
-NEXT
-----
-- Confirm build 8 uploads successfully (password: lvhj-rsms-lxqx-evbp)
-- Test on TestFlight with sandbox account
-- Verify full purchase flow works
-
-
-================================================================================
-SESSION - February 19, 2026 (late evening) — IAP Setup Continued
-================================================================================
-
-ISSUE: IAP OFFERINGS NOT SHOWING
-
-Build 8 uploaded successfully. Tested on TestFlight → PaywallModal shows:
-"Alert: Error - No offering found. Please try again later."
-
-Root cause: Apple hasn't yet propagated the IAP to the sandbox environment.
-
-Steps taken:
-✓ Created IAP in App Store Connect (com.greenhill32.364waystosayno.lifetime)
-✓ Filled in all required metadata (Display Name, Description, Screenshot, Pricing)
-✓ Status changed from "Missing Metadata" to "Ready to Submit"
-✓ Attached IAP to build 8 on version page
-✓ Uninstalled and reinstalled TestFlight app
-✓ Waited 10-15 minutes multiple times
-
-Still no offerings returned. This is pure Apple propagation lag.
-Plan: Try again tomorrow (24+ hours often needed for first IAP).
-
-================================================================================
-BUGS TO FIX (READY FOR NEXT SESSION)
-================================================================================
-
-BUG 1: Golden day screen visible before purchase
-   - Currently: User can view calendar and tap any day, gets QuoteModal
-   - Should: Days 4+ show PaywallModal (no access until purchased)
-   - Likely fix: Check isPurchased in calendar.tsx before showing QuoteModal
-   - File: app/calendar.tsx
-
-BUG 2: "3 free quotes" hardcoding
-   - Currently: quotesUsed counter increments; after 3, paywall shows
-   - Should: Make the "3 free" limit more explicit/hardcoded
-   - Likely fix: Define QUOTES_FREE_LIMIT = 3 constant, use consistently
-   - Files: contexts/GoldenDayContext.tsx, app/calendar.tsx
-
-NEXT SESSION
-------------
-1. Try IAP offerings again (may work now after 24 hours)
-2. Fix golden day screen access control (limit to purchased users)
-3. Hardcode free quotes limit constant
-
-
-================================================================================
-SESSION - February 24, 2026
-================================================================================
-
-STRATEGY: First Apple submission prep — bare bones, no paywall
-
-Instead of debugging RevenueCat IAP propagation, we pivoted to get a working
-testable build onto App Store for review. Removed all paywall logic and RevenueCat
-initialization. Goal: submit a clean, functional app and iterate in later builds.
-
-WHAT WE DID
------------
-
-1. Removed paywall behavior from calendar flow
-   - Calendar no longer gates day taps by quotesUsed count
-   - All taps show QuoteModal (no PaywallModal for first submission)
-   - Allows reviewers to see full app functionality without purchase friction
-
-2. Updated About screen copy
-   - Removed all messaging mentioning "unlock", "purchase", "paywall", "premium"
-   - Kept simple intro flow without monetization hints
-   - File: app/about.tsx
-
-3. Disabled RevenueCat initialization
-   - Commented out Purchases.configure() and the entire RevenueCat check block
-   - App no longer tries to contact RevenueCat on launch
-   - Allows testing in Expo Go without build requirements
-   - File: app/_layout.tsx
-
-4. Removed Restore Purchases from Settings modal
-   - Deleted menu item from SettingsModal
-   - Will re-add after first approval (can't mention purchase before review)
-   - File: components/SettingsModal.tsx
-
-5. Fixed calendar tapped-day state behavior
-   - Tapped days now persist correctly across app restarts
-   - Each day remembers if it's been tapped (solved state loss bug)
-   - File: app/calendar.tsx
-
-6. Changed tapped-day visual marker
-   - From: grey-out effect (entire day cell faded)
-   - To: gold strikethrough on the date number itself
-   - Matches design intent: day is "used" not "unavailable"
-   - More elegant visual distinction without obscuring calendar
-
-7. Persisted visited/tapped calendar days to AsyncStorage
-   - tappedDays array now synced with device storage
-   - Marks match the X/364 counter on QuoteModal
-   - Survives app close and restart
-   - File: app/calendar.tsx, contexts/GoldenDayContext.tsx
-
-8. Added Didot font to key screens
-   - About screen title + subtitle
-   - Calendar header title + subtitle
-   - Pick-a-Golden-Day screen title + subtitle
-   - Consistent premium typography across main user journey
-   - File: about.tsx, calendar.tsx, pick-golden-day.tsx
-
-9. Adjusted Amore/gold-day modal position
-   - Moved gold-bordered box down slightly
-   - Better visual balance in modal layout
-   - File: components/AmoreModal.tsx
-
-10. Tested persistence with temporary Reset Count button
-    - Added, confirmed tappedDays survived restart
-    - Removed after validation
-    - File: app/calendar.tsx (temporary, not committed)
-
-FILES MODIFIED
---------------
-- about.tsx
-- calendar.tsx
-- pick-golden-day.tsx
-- components/AmoreModal.tsx
-- components/SettingsModal.tsx
-- contexts/GoldenDayContext.tsx
-- lib/revenuecat.ts (commented out)
-
-NET RESULT FOR APPLE FIRST SUBMIT
----------------------------------
-✓ No paywall shown (clean UX for review)
-✓ No restore purchases button (no monetization claims pre-approval)
-✓ App behavior consistent and testable in Expo Go
-✓ Calendar selection/tap marks persist correctly
-✓ Ready to build and submit to TestFlight
-
-NEXT STEPS (READY)
-------------------
-1. ./build-ios.sh (bump to build 7)
-2. Enter app-specific password: waqs-dvuk-vjvb-yfmw
-3. Submit to TestFlight
-4. Once approved by reviewers, re-enable:
-   - Paywall gating logic in calendar
-   - RevenueCat initialization
-   - Restore Purchases in Settings
-   - Purchase messaging in About screen
-5. Build 8+ can re-introduce monetization after first app approval
-
-NOTE: Previous password (lvhj-rsms-lxqx-evbp) failed auth on first upload attempt.
-Generated new password from account.apple.com on 2026-02-24.
-
-
-================================================================================
-SESSION - March 8, 2026 — Design System Implementation (TODO.docx)
-================================================================================
-
-WHAT WE DID
------------
-
-Applied comprehensive design system update from TODO.docx checklist. Implemented
-Sections 1–11 (skipped Section 12: post-approval monetization; Section 13: final
-checks pending full implementation).
-
-FONTS & COLORS (Section 1–2)
------------------------------
-✓ Installed expo-font + @expo-google-fonts/cormorant-garamond + cinzel
-✓ Updated app/_layout.tsx: useFonts() loads 7 font variants, SplashScreen held
-  until fonts ready
-✓ Created constants/fonts.ts: centralized Cormorant/Cinzel font family constants
-✓ Rewrote constants/colors.ts: new 5-stop gold scale, added goldDim/goldBright/
-  goldDark/goldMid, updated cream (#f8efe2), added panel/panelEdge glass card tokens
-✓ Deleted scaffold files: app/explore.tsx, app/modal.tsx, constants/theme.ts
-
-SCREENS REDESIGN (Sections 3–6)
--------------------------------
-✓ app/about.tsx: animated spinning feature icons (6s/7.5s/5.5s staggered), glass
-  panel card (panel/panelEdge), new copy ("except one", "elegance"), liquid gold
-  Begin button, Cormorant/Cinzel fonts throughout
-
-✓ app/pick-golden-day.tsx: replaced native DateTimePicker with custom calendar
-  grid, spinning gold ring on selected day (4.5s rotate), month nav, selected date
-  pill, custom grid rendering (no DateTimePicker)
-
-✓ app/golden-day-splash.tsx: dark #140810 bg, Cormorant italic title, Cinzel
-  subtitle, DiamondDivider component with pulsing ◇ (1.4s opacity pulse between
-  left/right rules)
-
-✓ app/calendar.tsx: background changed from #4a1942 to #140810, today ring
-  (borderWidth: 1, no fill), tapped day coin disc (86% size, 35% gold opacity,
-  dark text), removed strikethrough, font updates (Cormorant title, Cinzel labels)
-
-COMPONENTS (Sections 7–10)
---------------------------
-✓ components/QuoteModal.tsx: full TODO version replacement with ViewShot share
-  card, CornerOrnament art-deco brackets, Noted+Share flow with Animated reveal,
-  improved text clarity (× dismiss brighter/larger, tapHint opacity 0.65,
-  tapUsed opacity 1.0 + goldBright color), Share button border/bg more visible
-
-✓ components/AmoreModal.tsx: × char close button (top -14 right -14, 38x38),
-  panelEdge border, liquid gold Perfect button, Cormorant italic title,
-  fontFamily updates
-
-✓ components/SettingsModal.tsx: × close button, dark bg (backgroundDark),
-  Cinzel title + letterSpacing, diamond divider below title, Cormorant menu items
-
-✓ components/PaywallModal.tsx: × close button, borderRadius 28, panelEdge border,
-  Cormorant italic title/body, liquid gold stretch Unlock button, Cinzel restore
-  text
-
-VISUAL POLISH (Post-implementation fixes)
------------------------------------------
-✓ Removed topGlow blobs from about/pick-golden-day/golden-day-splash
-  - React Native can't blur these into soft glows like CSS; rendered as hard
-    ovals. Removed entirely.
-
-✓ Removed bgGlow1/bgGlow2 from QuoteModal ShareCard
-  - Same issue: solid dark ovals instead of soft glows. Removed.
-
-✓ Fixed calendar background: #4a1942 → #140810 (dark theme consistency)
-
-✓ Fixed missing icons on about screen: added color: Colors.gold to emoji style
-  (✦ and ∞ are text chars, not emoji, so need explicit color)
-
-✓ Improved QuoteModal text clarity:
-  - "uses 1 tap" hint: opacity 0.3 → 0.55, size 8→9, weight 500→600
-  - "tap used": opacity 0.75 → 1.0, upgraded to goldBright color
-  - Share button: border opacity 0.32→0.55, background 0.04→0.08, text size
-    11→12, weight 500→600, icon full opacity
-  - × dismiss: size 18→22, opacity 0.75→1.0, color goldBright, removed dim font
-
-FILES CHANGED (NO NEW FILES)
-----------------------------
-- constants/colors.ts (new tokens)
-- constants/fonts.ts (new)
-- app/_layout.tsx (font loading)
-- app/about.tsx (redesign + topGlow removal + icon color fix)
-- app/pick-golden-day.tsx (custom calendar, topGlow removal)
-- app/golden-day-splash.tsx (DiamondDivider with pulse, topGlow removal)
-- app/calendar.tsx (dark bg, today ring, tapped coin disc, fonts)
-- components/QuoteModal.tsx (TODO version + glow removal + text clarity)
-- components/AmoreModal.tsx (redesign)
-- components/SettingsModal.tsx (redesign)
-- components/PaywallModal.tsx (redesign)
-- Deleted: app/explore.tsx, app/modal.tsx, constants/theme.ts
-
-WHAT WENT RIGHT
----------------
-✓ TODO.docx provided a complete, implementable roadmap (13 sections)
-✓ Font loading pattern (useFonts + SplashScreen) is clean and reusable
-✓ Animated spinning rings on icons/selected days work smoothly with Easing.linear
-✓ Glass card aesthetic (panel/panelEdge tokens) applied consistently across modals
-✓ Liquid gold buttons approximate CSS gradients well enough without LinearGradient
-✓ Custom calendar grid replaces native DateTimePicker for full design control
-✓ DiamondDivider component is reusable (golden-day-splash can be easily updated)
-✓ No new npm dependencies needed beyond font packages
-
-WHAT NEEDED POLISH
-------------------
-⚠ topGlow View rendering as hard blob instead of soft glow
-  - CSS blur filters don't translate to React Native without expo-blur
-  - Removing was cleaner than approximating with partial opacity
-
-⚠ ✦ and ∞ characters rendering invisible in icon rings
-  - Text chars need explicit color; emoji don't
-  - Added color: Colors.gold to fix
-
-NEXT STEPS (READY FOR TESTING)
-------------------------------
-1. Test all screens visually on device/simulator
-2. Verify font loading delays are imperceptible
-3. Check calendar grid rendering on various screen sizes (aspect ratio 1:1)
-4. Confirm spinning animations are smooth (ring on icons, selected day, diamond)
-5. Test tap count + paywall re-enable after Apple approval
-6. Consider LinearGradient import if liquid gold buttons need more polish
-
-
-================================================================================
-SESSION - March 10, 2026 — Quote Flow + Palette + Test Utilities
-================================================================================
-
-WHAT WE DID
------------
-
-1. Rebalanced app background color
-   - Tested multiple plum midpoint shades on calendar screen
-   - Selected the lightest approved swatch and applied it app-wide
-   - Updated shared tokens:
-     - background: #381729
-     - backgroundDark: #331425
-   - Replaced remaining hardcoded near-black backgrounds in:
-     - app/about.tsx
-     - app/pick-golden-day.tsx
-     - app/golden-day-splash.tsx
-     - components/QuoteModal.tsx
-
-2. Fixed calendar counter behavior
-   - Header counter now reflects clicked/visited day count, not old quotesUsed state
-   - Counter source is visitedDayKeys.length / 364
-   - Re-tapping an already visited day does not increase the count
-   - File: app/calendar.tsx
-
-3. Updated quote selection progression
-   - Added day-count-aware quote selector in constants/quotes.ts
-   - First 60 clicked days now pull only from rating 9 + rating 10 pools
-   - After day 60, quote selection falls back to the full quote collection
-   - Confirmed pool size is sufficient:
-     - rating9 = 52
-     - rating10 = 10
-     - total = 62
-
-4. Added local cache reset for testing
-   - Settings modal now includes "Clear Local Cache"
-   - Clears saved golden day, visited days, purchase flag, and legacy local quote usage key
-   - Uses confirmation alert before destructive reset
-   - Files:
-     - components/SettingsModal.tsx
-     - contexts/GoldenDayContext.tsx
-
-5. Cleaned up stale state
-   - Removed quotesUsed and incrementQuotesUsed from GoldenDayContext
-   - App now uses visitedDayKeys as the single progression source for calendar usage
-   - Left legacy quotes_used storage key in clearLocalCache for backwards cleanup
-
-6. Improved splash layout resilience
-   - Replaced brittle fixed marginTop positioning with flex-based hero centering
-   - Keeps "Your Golden Day" block more stable across device sizes
-   - File: app/golden-day-splash.tsx
-
-7. Small UI cleanup
-   - Quote modal dismiss now shows literal "X"
-   - Removed redundant gold indicator dot from golden-day cell
-   - Softened modal overlays to match plum palette:
-     - SettingsModal
-     - PaywallModal
-     - AmoreModal
-   - Settings version now reads from Expo config instead of hardcoded string
-
-FILES CHANGED
--------------
-- constants/colors.ts
-- constants/quotes.ts
-- app/about.tsx
-- app/pick-golden-day.tsx
-- app/golden-day-splash.tsx
-- app/calendar.tsx
-- components/QuoteModal.tsx
-- components/SettingsModal.tsx
-- components/PaywallModal.tsx
-- components/AmoreModal.tsx
-- contexts/GoldenDayContext.tsx
-
-NOTES
------
-- Temporary calendar background picker was added for visual selection, then removed after choosing final color
-- Current quote progression rule is:
-  - Day 1-60: rating9 + rating10 only
-  - Day 61+: full quote pool
-
-NEXT CHECKS
------------
-1. Confirm splash hero sits correctly on smaller and taller iPhones
-2. Verify first 60 unique clicked days only show rating 9/10 quotes
-3. Test Clear Local Cache resets:
-   - golden day
-   - visited day count
-   - purchase state
-4. Check modal overlay tone against updated plum background on-device
+ONE HOUR EACH:
+  - Noted shimmer: 120ms gold border flash on tap (QuoteModal)
+  - Golden Day pulses once on mount, then stillness (calendar)
+  - Begin button breathes: 3s slow border opacity cycle (about)
+  - Splash numeral emergence: 364 fades in from darkness over 1.4s (index)
+
+COPY + CODE:
+  - Counter milestone strings: "1 excuse claimed", "10 days of dignity" etc (calendar)
+  - Name the Golden Day on celebration screen with actual chosen date (golden-day-splash)
+  - Past months render at 70% opacity, current month gets gold hairline rule (calendar)
+
+
+PRE-BUILD v7 CHECKLIST
+=======================
+[ ] Rotate RevenueCat API key in RC dashboard
+[ ] Comment out live import in lib/revenuecat.ts
+[ ] Add build-ios.sh and ExportOptions.plist to .gitignore
+[ ] Add try/catch to Linking.openURL in SettingsModal
+[ ] Remove unused useWindowDimensions import from QuoteModal
+[ ] Fix orange items above
+[ ] Increment build number in app.json
+[ ] Run npm run lint — pass clean
+[ ] Build v7 via build-ios.sh
+[ ] Upload to TestFlight
+[ ] Test on real device

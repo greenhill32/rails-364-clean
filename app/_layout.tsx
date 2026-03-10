@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import {
@@ -15,7 +14,7 @@ import {
 } from '@expo-google-fonts/cinzel';
 import * as SplashScreen from 'expo-splash-screen';
 import { GoldenDayProvider } from '@/contexts/GoldenDayContext';
-import { ensureRevenueCatConfigured } from '@/lib/revenuecat';
+// import { ensureRevenueCatConfigured } from '@/lib/revenuecat'; // RC disabled until App Store submission
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,12 +35,12 @@ export default function Layout() {
     }
   }, [fontsLoaded]);
 
-  useEffect(() => {
-    if (Platform.OS === 'web') return;
-    ensureRevenueCatConfigured().catch((e) => {
-      console.error('RevenueCat config failed:', e);
-    });
-  }, []);
+  // useEffect(() => {
+  //   if (Platform.OS === 'web') return;
+  //   ensureRevenueCatConfigured().catch((e) => {
+  //     console.error('RevenueCat config failed:', e);
+  //   });
+  // }, []); // RC disabled until App Store submission
 
   if (!fontsLoaded) return null;
 

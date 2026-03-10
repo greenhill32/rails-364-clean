@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Purchases from 'react-native-purchases';
-import { ensureRevenueCatConfigured } from '@/lib/revenuecat';
+// import Purchases from 'react-native-purchases'; // RC disabled until App Store submission
+// import { ensureRevenueCatConfigured } from '@/lib/revenuecat'; // RC disabled until App Store submission
 
 type GoldenDay = { month: number; date: number } | null;
 
@@ -54,18 +53,19 @@ export function GoldenDayProvider({ children }: { children: ReactNode }) {
       }
 
       // Check RevenueCat for ground truth (after showing cached state fast)
-      if (Platform.OS !== 'web') {
-        try {
-          await ensureRevenueCatConfigured();
-          const customerInfo = await Purchases.getCustomerInfo();
-          if (customerInfo.entitlements.active['pro']) {
-            setIsPurchased(true);
-            await AsyncStorage.setItem('is_purchased', 'true');
-          }
-        } catch {
-          // Offline or not configured yet — fall back to cached value silently
-        }
-      }
+      // RC disabled until App Store submission
+      // if (Platform.OS !== 'web') {
+      //   try {
+      //     await ensureRevenueCatConfigured();
+      //     const customerInfo = await Purchases.getCustomerInfo();
+      //     if (customerInfo.entitlements.active['pro']) {
+      //       setIsPurchased(true);
+      //       await AsyncStorage.setItem('is_purchased', 'true');
+      //     }
+      //   } catch {
+      //     // Offline or not configured yet — fall back to cached value silently
+      //   }
+      // }
     }
     loadPersisted();
   }, []);
